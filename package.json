@@ -1,0 +1,16 @@
+{
+  "name": "abhishek-bhardwaj-media",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Abhishek Bhardwaj Media — Dynamic Digital Media Platform Monorepo",
+  "scripts": {
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "build:backend": "npm --prefix backend run build",
+    "build:frontend": "npm --prefix frontend run build"
+  },
+  "workspaces": [
+    "backend",
+    "frontend"
+  ]
+}
