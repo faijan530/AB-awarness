@@ -1,44 +1,164 @@
 import { create } from 'zustand';
-import { UserProfile, UserRole } from '@/types/common.types';
+import { UserProfile, UserRole, PermissionCode, SessionStatus } from '@/types/common.types';
+import { AuthService, LoginPayload, RegisterPayload } from '@/services/api/auth-service';
+import { setOnSessionExpired } from '@/services/api/api-client';
 
 interface AuthState {
   user: UserProfile | null;
   isAuthenticated: boolean;
-  role: UserRole | null;
-  setAuth: (user: UserProfile | null, token?: string) => void;
-  logout: () => void;
+  isInitializing: boolean;
+  sessionStatus: SessionStatus;
+  isLoading: boolean;
+  error: string | null;
+
+  // Actions
+  initAuth: () => Promise<void>;
+  login: (payload: LoginPayload) => Promise<void>;
+  register: (payload: RegisterPayload) => Promise<void>;
+  logout: () => Promise<void>;
+  clearError: () => void;
+  setSessionExpired: () => void;
+
+  // Helper Authorization Queries
+  hasRole: (role: UserRole) => boolean;
+  hasPermission: (permission: PermissionCode) => boolean;
+  hasAnyPermission: (permissions: PermissionCode[]) => boolean;
+  hasAllPermissions: (permissions: PermissionCode[]) => boolean;
 }
 
-// Foundation authentication store placeholder for Module 2
-export const useAuthStore = create<AuthState>((set) => ({
-  // Default mock state for Module 1 shell testing
-  user: {
-    id: 'usr_01',
-    email: 'admin@abmedia.in',
-    fullName: 'Abhishek Bhardwaj (Super Admin)',
-    role: 'SUPER_ADMIN',
-    district: 'Palamu',
-  },
-  isAuthenticated: true,
-  role: 'SUPER_ADMIN',
+export const useAuthStore = create<AuthState>((set, get) => {
+  // Bind API 401 session expiration interceptor callback
+  setOnSessionExpired(() => {
+    get().setSessionExpired();
+  });
 
-  setAuth: (user, token) => {
-    if (token) {
-      localStorage.setItem('ab_media_access_token', token);
-    }
-    set({
-      user,
-      isAuthenticated: !!user,
-      role: user?.role || null,
-    });
-  },
+  return {
+    user: null,
+    isAuthenticated: false,
+    isInitializing: true,
+    sessionStatus: 'UNAUTHENTICATED',
+    isLoading: false,
+    error: null,
 
-  logout: () => {
-    localStorage.removeItem('ab_media_access_token');
-    set({
-      user: null,
-      isAuthenticated: false,
-      role: null,
-    });
-  },
-}));
+    initAuth: async () => {
+      set({ isInitializing: true });
+      const token = localStorage.getItem('ab_access_token');
+      if (!token) {
+        set({
+          user: null,
+          isAuthenticated: false,
+          sessionStatus: 'UNAUTHENTICATED',
+          isInitializing: false,
+        });
+        return;
+      }
+
+      try {
+        const user = await AuthService.getCurrentUser();
+        set({
+          user,
+          isAuthenticated: true,
+          sessionStatus: 'AUTHENTICATED',
+          isInitializing: false,
+        });
+      } catch (err: any) {
+        localStorage.removeItem('ab_access_token');
+        set({
+          user: null,
+          isAuthenticated: false,
+          sessionStatus: 'EXPIRED',
+          isInitializing: false,
+        });
+      }
+    },
+
+    login: async (payload: LoginPayload) => {
+      set({ isLoading: true, error: null });
+      try {
+        const data = await AuthService.login(payload);
+        set({
+          user: data.user,
+          isAuthenticated: true,
+          sessionStatus: 'AUTHENTICATED',
+          isLoading: false,
+        });
+      } catch (err: any) {
+        const message =
+          err.response?.data?.message || err.message || 'Invalid credentials or login failed';
+        set({ error: message, isLoading: false });
+        throw new Error(message);
+      }
+    },
+
+    register: async (payload: RegisterPayload) => {
+      set({ isLoading: true, error: null });
+      try {
+        const data = await AuthService.register(payload);
+        set({
+          user: data.user,
+          isAuthenticated: true,
+          sessionStatus: 'AUTHENTICATED',
+          isLoading: false,
+        });
+      } catch (err: any) {
+        const message =
+          err.response?.data?.message || err.message || 'Registration failed';
+        set({ error: message, isLoading: false });
+        throw new Error(message);
+      }
+    },
+
+    logout: async () => {
+      set({ isLoading: true });
+      try {
+        await AuthService.logout();
+      } finally {
+        set({
+          user: null,
+          isAuthenticated: false,
+          sessionStatus: 'UNAUTHENTICATED',
+          isLoading: false,
+          error: null,
+        });
+      }
+    },
+
+    clearError: () => set({ error: null }),
+
+    setSessionExpired: () => {
+      localStorage.removeItem('ab_access_token');
+      set({
+        user: null,
+        isAuthenticated: false,
+        sessionStatus: 'EXPIRED',
+      });
+    },
+
+    hasRole: (role: UserRole) => {
+      const user = get().user;
+      if (!user) return false;
+      return user.roles?.includes(role) || false;
+    },
+
+    hasPermission: (permission: PermissionCode) => {
+      const user = get().user;
+      if (!user) return false;
+      if (user.roles?.includes('SUPER_ADMIN')) return true;
+      return user.permissions?.includes(permission) || false;
+    },
+
+    hasAnyPermission: (permissions: PermissionCode[]) => {
+      const user = get().user;
+      if (!user) return false;
+      if (user.roles?.includes('SUPER_ADMIN')) return true;
+      return permissions.some((p) => user.permissions?.includes(p));
+    },
+
+    hasAllPermissions: (permissions: PermissionCode[]) => {
+      const user = get().user;
+      if (!user) return false;
+      if (user.roles?.includes('SUPER_ADMIN')) return true;
+      return permissions.every((p) => user.permissions?.includes(p));
+    },
+  };
+});

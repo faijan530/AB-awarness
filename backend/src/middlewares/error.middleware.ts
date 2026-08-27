@@ -23,7 +23,7 @@ export function globalErrorMiddleware(
   res: Response,
   _next: NextFunction
 ): Response {
-  const correlationId = req.correlationId;
+  const correlationId = (req as any).correlationId;
 
   if (err instanceof AppError) {
     logger.warn(`Operational AppError [${err.code}]: ${err.message}`, { correlationId });

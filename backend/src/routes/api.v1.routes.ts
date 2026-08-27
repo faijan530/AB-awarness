@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { healthRoutes } from '../modules/health/health.routes';
+import { authRoutes } from '../modules/auth/auth.routes';
 import { ApiResponse } from '../utils/api-response';
 
 const router = Router();
@@ -21,9 +22,7 @@ router.get('/', (_req, res) =>
 
 // Mount Domain Modules
 router.use('/health', healthRoutes);
-
-// Placeholder endpoints for recognized future modules
-router.use('/auth', (_req, res) => ApiResponse.success(res, 'Auth module endpoint initialized', { module: 'auth' }));
+router.use('/auth', authRoutes);
 router.use('/users', (_req, res) => ApiResponse.success(res, 'Users module endpoint initialized', { module: 'users' }));
 router.use('/news', (_req, res) => ApiResponse.success(res, 'News module endpoint initialized', { module: 'news' }));
 router.use('/categories', (_req, res) => ApiResponse.success(res, 'Categories module endpoint initialized', { module: 'categories' }));

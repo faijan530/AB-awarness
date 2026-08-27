@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Newspaper, Flame, Search, MapPin, Shield, Menu, X, Bell, Activity, Sparkles } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Newspaper, Flame, Search, MapPin, Shield, Menu, X, Bell, Activity, Sparkles, LogIn, LogOut, User as UserIcon } from 'lucide-react';
 import { useAuthStore } from '@/store/auth-store';
 import { useQuery } from '@tanstack/react-query';
 import { HealthService } from '@/services/api/health-service';
@@ -8,7 +8,8 @@ import { HealthService } from '@/services/api/health-service';
 export const UserHeader: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
-  const { user } = useAuthStore();
+  const navigate = useNavigate();
+  const { user, isAuthenticated, logout, hasRole } = useAuthStore();
 
   const { isSuccess } = useQuery({
     queryKey: ['backend-health-user'],
@@ -19,9 +20,14 @@ export const UserHeader: React.FC = () => {
 
   const isNavActive = (path: string) => location.pathname === path;
 
+  const handleLogout = async () => {
+    await logout();
+    navigate('/');
+  };
+
   return (
     <header className="sticky top-0 z-40 glass-panel border-b border-slate-800/80 shadow-2xl backdrop-blur-xl">
-      {/* Premium Regional Ticker Bar */}
+      {/* Premium Ticker */}
       <div className="bg-gradient-to-r from-slate-950 via-rose-950/40 to-slate-950 text-xs py-1.5 px-4 flex items-center justify-between border-b border-slate-800/60">
         <div className="flex items-center gap-3">
           <span className="bg-gradient-to-r from-rose-600 to-amber-600 text-white text-[10px] uppercase font-black px-2 py-0.5 rounded-full shadow-md shadow-rose-950 flex items-center gap-1">
@@ -95,16 +101,6 @@ export const UserHeader: React.FC = () => {
             Garhwa
           </Link>
           <Link
-            to="/news/jharkhand"
-            className={`px-3 py-2 rounded-xl transition-all ${
-              isNavActive('/news/jharkhand')
-                ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
-                : 'text-slate-300 hover:text-emerald-400 hover:bg-slate-900/60'
-            }`}
-          >
-            Jharkhand
-          </Link>
-          <Link
             to="/search"
             className={`px-3 py-2 rounded-xl transition-all flex items-center gap-1 ${
               isNavActive('/search')
@@ -126,22 +122,42 @@ export const UserHeader: React.FC = () => {
             <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
           </Link>
 
-          <Link
-            to="/profile"
-            className="hidden sm:flex items-center gap-2 bg-slate-900/90 border border-slate-800 hover:border-slate-700 p-1.5 pr-3.5 rounded-xl text-xs font-bold text-slate-200 transition-all hover:shadow-lg"
-          >
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-700 text-white flex items-center justify-center font-black text-xs shadow-md">
-              AB
+          {isAuthenticated ? (
+            <div className="flex items-center gap-2">
+              <Link
+                to="/profile"
+                className="flex items-center gap-2 bg-slate-900/90 border border-slate-800 hover:border-slate-700 p-1.5 pr-3 rounded-xl text-xs font-bold text-slate-200 transition-all"
+              >
+                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-700 text-white flex items-center justify-center font-black text-xs shadow-md">
+                  {user?.fullName ? user.fullName.substring(0, 2).toUpperCase() : 'US'}
+                </div>
+                <span className="truncate max-w-[90px]">{user?.fullName.split(' ')[0]}</span>
+              </Link>
+              <button
+                onClick={handleLogout}
+                title="Log Out"
+                className="p-2 text-slate-400 hover:text-red-400 hover:bg-slate-900 rounded-xl border border-slate-800 transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
             </div>
-            <span className="truncate max-w-[110px]">{user?.fullName.split(' ')[0] || 'User'}</span>
-          </Link>
+          ) : (
+            <Link
+              to="/login"
+              className="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-200 transition-all flex items-center gap-1.5"
+            >
+              <LogIn className="w-3.5 h-3.5 text-emerald-400" /> Log In
+            </Link>
+          )}
 
-          <Link
-            to="/admin/dashboard"
-            className="px-3.5 py-2 rounded-xl text-xs font-extrabold bg-gradient-to-r from-rose-950 to-slate-900 border border-rose-500/30 text-rose-300 hover:border-rose-400 hover:text-white transition-all shadow-lg shadow-rose-950/40 flex items-center gap-1.5"
-          >
-            <Shield className="w-3.5 h-3.5 text-rose-400" /> Super Admin
-          </Link>
+          {hasRole('SUPER_ADMIN') && (
+            <Link
+              to="/admin/dashboard"
+              className="px-3 py-2 rounded-xl text-xs font-extrabold bg-gradient-to-r from-rose-950 to-slate-900 border border-rose-500/30 text-rose-300 hover:border-rose-400 hover:text-white transition-all shadow-lg shadow-rose-950/40 flex items-center gap-1.5"
+            >
+              <Shield className="w-3.5 h-3.5 text-rose-400" /> Admin
+            </Link>
+          )}
 
           {/* Mobile Hamburger Toggle */}
           <button
@@ -154,25 +170,36 @@ export const UserHeader: React.FC = () => {
         </div>
       </div>
 
-      {/* Mobile Drawer Menu */}
+      {/* Mobile Drawer */}
       {isMobileMenuOpen && (
         <div className="md:hidden border-t border-slate-800/80 bg-slate-950/95 backdrop-blur-2xl p-4 space-y-2 animate-in slide-in-from-top-3 duration-200">
           <nav className="flex flex-col space-y-1 text-sm font-bold text-slate-300">
             <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="p-2.5 hover:bg-slate-900 rounded-xl">
               Breaking & Latest News
             </Link>
-            <Link to="/news/palamu" onClick={() => setIsMobileMenuOpen(false)} className="p-2.5 hover:bg-slate-900 rounded-xl">
-              Palamu News
-            </Link>
-            <Link to="/news/garhwa" onClick={() => setIsMobileMenuOpen(false)} className="p-2.5 hover:bg-slate-900 rounded-xl">
-              Garhwa News
-            </Link>
             <Link to="/search" onClick={() => setIsMobileMenuOpen(false)} className="p-2.5 hover:bg-slate-900 rounded-xl">
               Search News
             </Link>
-            <Link to="/profile" onClick={() => setIsMobileMenuOpen(false)} className="p-2.5 hover:bg-slate-900 rounded-xl">
-              Citizen Reporter Desk
-            </Link>
+            {isAuthenticated ? (
+              <>
+                <Link to="/profile" onClick={() => setIsMobileMenuOpen(false)} className="p-2.5 hover:bg-slate-900 rounded-xl">
+                  My Citizen Profile
+                </Link>
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    handleLogout();
+                  }}
+                  className="p-2.5 hover:bg-slate-900 text-red-400 text-left rounded-xl"
+                >
+                  Log Out
+                </button>
+              </>
+            ) : (
+              <Link to="/login" onClick={() => setIsMobileMenuOpen(false)} className="p-2.5 hover:bg-slate-900 text-emerald-400 rounded-xl">
+                Log In
+              </Link>
+            )}
           </nav>
         </div>
       )}

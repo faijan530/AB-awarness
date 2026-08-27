@@ -1,21 +1,26 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { useAuthStore } from '@/store/auth-store';
 
 // Layouts
 import { UserLayout } from '@/layouts/UserLayout';
 import { AdminLayout } from '@/layouts/AdminLayout';
 
-// Route Guards
+// Route Guards & Status Screens
 import { ProtectedRoute } from './ProtectedRoute';
 import { AdminRoute } from './AdminRoute';
 import { NotFoundPage } from './NotFoundPage';
+import { UnauthorizedPage } from './UnauthorizedPage';
+import { SessionExpiredModal } from '@/components/common/SessionExpiredModal';
 
-// Feature Pages
+// Feature Auth Pages
 import { HomePage } from '@/features/news/pages/HomePage';
 import { NewsDetailPage } from '@/features/news/pages/NewsDetailPage';
 import { SearchPage } from '@/features/search/pages/SearchPage';
 import { LoginPage } from '@/features/auth/pages/LoginPage';
 import { RegisterPage } from '@/features/auth/pages/RegisterPage';
+import { ForgotPasswordPage } from '@/features/auth/pages/ForgotPasswordPage';
+import { ResetPasswordPage } from '@/features/auth/pages/ResetPasswordPage';
 
 import { ProfilePage } from '@/features/users/pages/ProfilePage';
 
@@ -30,8 +35,15 @@ import { AdminReportsPage } from '@/features/admin/pages/AdminReportsPage';
 import { AdminSettingsPage } from '@/features/admin/pages/AdminSettingsPage';
 
 export const AppRouter: React.FC = () => {
+  const initAuth = useAuthStore((state) => state.initAuth);
+
+  useEffect(() => {
+    initAuth();
+  }, [initAuth]);
+
   return (
     <BrowserRouter>
+      <SessionExpiredModal />
       <Routes>
         {/* Public & User Layout Routes */}
         <Route element={<UserLayout />}>
@@ -41,8 +53,13 @@ export const AppRouter: React.FC = () => {
           <Route path="/category/:slug" element={<HomePage />} />
           <Route path="/location/:slug" element={<HomePage />} />
           <Route path="/search" element={<SearchPage />} />
+          
+          {/* Auth Routes */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
           {/* Protected Citizen Reporter Routes */}
           <Route element={<ProtectedRoute />}>

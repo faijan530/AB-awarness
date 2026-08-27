@@ -1,21 +1,27 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { Menu, Shield, ExternalLink, Globe, Activity } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Menu, Shield, ExternalLink, Globe, Activity, LogOut } from 'lucide-react';
 import { useUIStore } from '@/store/ui-store';
 import { useAuthStore } from '@/store/auth-store';
 import { useQuery } from '@tanstack/react-query';
 import { HealthService } from '@/services/api/health-service';
 
 export const AdminHeader: React.FC = () => {
+  const navigate = useNavigate();
   const toggleAdminSidebar = useUIStore((state) => state.toggleAdminSidebar);
-  const { user } = useAuthStore();
+  const { user, logout } = useAuthStore();
 
-  const { data: healthData, isSuccess } = useQuery({
+  const { isSuccess } = useQuery({
     queryKey: ['backend-health'],
     queryFn: () => HealthService.getHealth(),
     refetchInterval: 10000,
     retry: 1,
   });
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
 
   return (
     <header className="sticky top-0 z-40 glass-panel border-b border-slate-800 px-4 py-3 flex items-center justify-between">
@@ -59,14 +65,24 @@ export const AdminHeader: React.FC = () => {
           <Globe className="w-3.5 h-3.5 text-emerald-400" /> View Public Site <ExternalLink className="w-3 h-3 text-slate-500" />
         </Link>
 
-        <div className="flex items-center gap-2 border-l border-slate-800 pl-3">
-          <div className="w-8 h-8 rounded-full bg-rose-500/20 border border-rose-500/30 text-rose-400 flex items-center justify-center font-bold text-xs">
-            SA
+        <div className="flex items-center gap-3 border-l border-slate-800 pl-3">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-rose-500/20 border border-rose-500/30 text-rose-400 flex items-center justify-center font-bold text-xs">
+              SA
+            </div>
+            <div className="hidden md:block text-left">
+              <p className="text-xs font-bold text-slate-100">{user?.fullName || 'Super Admin'}</p>
+              <p className="text-[10px] text-slate-400">Editorial Authority</p>
+            </div>
           </div>
-          <div className="hidden md:block text-left">
-            <p className="text-xs font-bold text-slate-100">{user?.fullName || 'Super Admin'}</p>
-            <p className="text-[10px] text-slate-400">Editorial Authority</p>
-          </div>
+
+          <button
+            onClick={handleLogout}
+            title="Log Out"
+            className="p-2 text-slate-400 hover:text-red-400 hover:bg-slate-900 rounded-lg transition-colors"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
         </div>
       </div>
     </header>

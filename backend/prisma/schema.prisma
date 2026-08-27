@@ -7,19 +7,787 @@ generator client {
   provider = "prisma-client-js"
 }
 
-enum Role {
-  SUPER_ADMIN
-  USER
+// ==========================================
+// ENUMS
+// ==========================================
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  BLOCKED
+  DELETED
 }
 
-model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  fullName  String
-  role      Role     @default(USER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+enum RoleName {
+  USER
+  SUPER_ADMIN
+}
 
+enum LocationType {
+  COUNTRY
+  STATE
+  DIVISION
+  DISTRICT
+  SUBDIVISION
+  BLOCK
+  CITY
+  TOWN
+  VILLAGE
+  LOCAL_AREA
+}
+
+enum NewsStatus {
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  SCHEDULED
+  PUBLISHED
+  ARCHIVED
+}
+
+enum EditorialActionType {
+  SUBMITTED
+  REVIEWED
+  APPROVED
+  REJECTED
+  PUBLISHED
+  UNPUBLISHED
+  ARCHIVED
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+  DOCUMENT
+  AUDIO
+}
+
+enum MediaRole {
+  FEATURED
+  INLINE
+  GALLERY
+  VIDEO
+  ATTACHMENT
+}
+
+enum SourceType {
+  OFFICIAL
+  GOVERNMENT
+  NEWS_ORGANIZATION
+  PRESS_RELEASE
+  SOCIAL_MEDIA
+  EYEWITNESS
+  DOCUMENT
+  OTHER
+}
+
+enum CredibilityStatus {
+  UNVERIFIED
+  LOW
+  MEDIUM
+  HIGH
+  VERIFIED
+}
+
+enum VerificationStatus {
+  PENDING
+  IN_REVIEW
+  VERIFIED
+  PARTIALLY_VERIFIED
+  UNVERIFIED
+  REJECTED
+}
+
+enum VerificationType {
+  FACT_CHECK
+  SOURCE_CHECK
+  ORIGINALITY_CHECK
+  MEDIA_CHECK
+}
+
+enum CommentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  FLAGGED
+  DELETED
+}
+
+enum ReactionType {
+  LIKE
+  LOVE
+  INSIGHTFUL
+  SAD
+  ANGRY
+}
+
+enum ReportReason {
+  FALSE_INFORMATION
+  MISLEADING
+  SPAM
+  ABUSE
+  COPYRIGHT
+  OFFENSIVE
+  OTHER
+}
+
+enum ReportStatus {
+  PENDING
+  UNDER_REVIEW
+  RESOLVED
+  DISMISSED
+}
+
+enum NotificationType {
+  SYSTEM
+  NEWS_APPROVED
+  NEWS_REJECTED
+  COMMENT_REPLY
+  VERIFICATION_UPDATE
+}
+
+enum AdStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  EXPIRED
+  CANCELLED
+}
+
+enum AdPlacementType {
+  HOMEPAGE_HERO
+  SIDEBAR
+  IN_ARTICLE
+  BOTTOM_STICKY
+  CATEGORY_HEADER
+}
+
+// ==========================================
+// 1. IDENTITY DOMAIN
+// ==========================================
+
+model User {
+  id            String     @id @default(uuid()) @db.Uuid
+  fullName      String     @map("full_name") @db.VarChar(150)
+  email         String?    @unique @db.VarChar(255)
+  phone         String?    @unique @db.VarChar(20)
+  passwordHash  String?    @map("password_hash") @db.Text
+  avatarUrl     String?    @map("avatar_url") @db.Text
+  bio           String?    @db.Text
+  status        UserStatus @default(ACTIVE)
+  emailVerified Boolean    @default(false) @map("email_verified")
+  phoneVerified Boolean    @default(false) @map("phone_verified")
+  lastLoginAt   DateTime?  @map("last_login_at")
+  createdAt     DateTime   @default(now()) @map("created_at")
+  updatedAt     DateTime   @updatedAt @map("updated_at")
+  deletedAt     DateTime?  @map("deleted_at")
+
+  // Relations
+  userRoles            UserRole[]
+  refreshTokens        RefreshToken[]
+  authoredNews         News[]               @relation("AuthoredNews")
+  newsRevisions        NewsRevision[]
+  editorialActions     EditorialAction[]
+  uploadedMedia        Media[]              @relation("UploadedMedia")
+  verifications        VerificationRecord[] @relation("Verifier")
+  comments             Comment[]
+  reactions            Reaction[]
+  bookmarks            Bookmark[]
+  reportsSubmitted     ContentReport[]      @relation("Reporter")
+  reportsReviewed      ContentReport[]      @relation("ReportReviewer")
+  notifications        Notification[]
+  auditLogs            AuditLog[]
+  systemSettingsUpdate SystemSetting[]
+  newsViews            NewsViewEvent[]
+
+  @@index([email])
+  @@index([phone])
+  @@index([status])
   @@map("users")
+}
+
+model Role {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        RoleName @unique
+  description String?  @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  userRoles       UserRole[]
+  rolePermissions RolePermission[]
+
+  @@map("roles")
+}
+
+model UserRole {
+  userId     String   @map("user_id") @db.Uuid
+  roleId     String   @map("role_id") @db.Uuid
+  assignedAt DateTime @default(now()) @map("assigned_at")
+  assignedBy String?  @map("assigned_by") @db.Uuid
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@map("user_roles")
+}
+
+model Permission {
+  id          String   @id @default(uuid()) @db.Uuid
+  code        String   @unique @db.VarChar(100)
+  description String?  @db.Text
+  module      String   @db.VarChar(50)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  rolePermissions RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String   @map("role_id") @db.Uuid
+  permissionId String   @map("permission_id") @db.Uuid
+  assignedAt   DateTime @default(now()) @map("assigned_at")
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+// ==========================================
+// 2. AUTHENTICATION PERSISTENCE
+// ==========================================
+
+model RefreshToken {
+  id         String    @id @default(uuid()) @db.Uuid
+  userId     String    @map("user_id") @db.Uuid
+  tokenHash  String    @map("token_hash") @db.Text
+  expiresAt  DateTime  @map("expires_at")
+  revokedAt  DateTime? @map("revoked_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  deviceInfo String?   @map("device_info") @db.Text
+  ipAddress  String?   @map("ip_address") @db.VarChar(45)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tokenHash])
+  @@map("refresh_tokens")
+}
+
+// ==========================================
+// 3. CLASSIFICATION DOMAIN
+// ==========================================
+
+model Category {
+  id           String   @id @default(uuid()) @db.Uuid
+  parentId     String?  @map("parent_id") @db.Uuid
+  name         String   @db.VarChar(100)
+  slug         String   @unique @db.VarChar(120)
+  description  String?  @db.Text
+  imageUrl     String?  @map("image_url") @db.Text
+  displayOrder Int      @default(0) @map("display_order")
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  parent         Category?      @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: Restrict)
+  children       Category[]     @relation("CategoryHierarchy")
+  newsCategories NewsCategory[]
+
+  @@index([slug])
+  @@index([parentId])
+  @@index([isActive])
+  @@map("categories")
+}
+
+model Location {
+  id           String       @id @default(uuid()) @db.Uuid
+  parentId     String?      @map("parent_id") @db.Uuid
+  name         String       @db.VarChar(150)
+  slug         String       @unique @db.VarChar(180)
+  type         LocationType
+  stateCode    String?      @map("state_code") @db.VarChar(10)
+  districtCode String?      @map("district_code") @db.VarChar(20)
+  latitude     Decimal?     @db.Decimal(10, 7)
+  longitude    Decimal?     @db.Decimal(10, 7)
+  isActive     Boolean      @default(true) @map("is_active")
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+
+  parent        Location?      @relation("LocationHierarchy", fields: [parentId], references: [id], onDelete: Restrict)
+  children      Location[]     @relation("LocationHierarchy")
+  newsLocations NewsLocation[]
+
+  @@index([slug])
+  @@index([parentId])
+  @@index([type])
+  @@map("locations")
+}
+
+model Tag {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String   @unique @db.VarChar(100)
+  slug      String   @unique @db.VarChar(120)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  newsTags NewsTag[]
+
+  @@map("tags")
+}
+
+// ==========================================
+// 4. NEWS DOMAIN & RELATIONSHIPS
+// ==========================================
+
+model News {
+  id               String     @id @default(uuid()) @db.Uuid
+  title            String     @db.VarChar(300)
+  slug             String     @unique @db.VarChar(350)
+  shortDescription String?    @map("short_description") @db.Text
+  content          String     @db.Text
+  excerpt          String?    @db.Text
+  status           NewsStatus @default(DRAFT)
+  authorId         String     @map("author_id") @db.Uuid
+  featuredImageId  String?    @map("featured_image_id") @db.Uuid
+  publishedAt      DateTime?  @map("published_at")
+  scheduledAt      DateTime?  @map("scheduled_at")
+  isBreaking       Boolean    @default(false) @map("is_breaking")
+  isFeatured       Boolean    @default(false) @map("is_featured")
+  viewCount        BigInt     @default(0) @map("view_count")
+  commentCount     Int        @default(0) @map("comment_count")
+  reactionCount    Int        @default(0) @map("reaction_count")
+  bookmarkCount    Int        @default(0) @map("bookmark_count")
+  createdAt        DateTime   @default(now()) @map("created_at")
+  updatedAt        DateTime   @updatedAt @map("updated_at")
+  deletedAt        DateTime?  @map("deleted_at")
+
+  author        User                 @relation("AuthoredNews", fields: [authorId], references: [id], onDelete: Restrict)
+  featuredImage Media?               @relation("FeaturedMedia", fields: [featuredImageId], references: [id], onDelete: SetNull)
+  categories    NewsCategory[]
+  locations     NewsLocation[]
+  tags          NewsTag[]
+  revisions     NewsRevision[]
+  actions       EditorialAction[]
+  newsMedia     NewsMedia[]
+  sources       NewsSource[]
+  verifications VerificationRecord[]
+  comments      Comment[]
+  reactions     Reaction[]
+  bookmarks     Bookmark[]
+  reports       ContentReport[]
+  seoMetadata   SeoMetadata?
+  viewEvents    NewsViewEvent[]
+  statistics    NewsStatistics?
+
+  @@index([slug])
+  @@index([status])
+  @@index([publishedAt])
+  @@index([authorId])
+  @@index([isBreaking])
+  @@index([isFeatured])
+  @@index([status, publishedAt])
+  @@index([isBreaking, publishedAt])
+  @@index([isFeatured, publishedAt])
+  @@map("news")
+}
+
+model NewsCategory {
+  newsId     String   @map("news_id") @db.Uuid
+  categoryId String   @map("category_id") @db.Uuid
+  isPrimary  Boolean  @default(false) @map("is_primary")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  news     News     @relation(fields: [newsId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([newsId, categoryId])
+  @@map("news_categories")
+}
+
+model NewsLocation {
+  newsId     String   @map("news_id") @db.Uuid
+  locationId String   @map("location_id") @db.Uuid
+  isPrimary  Boolean  @default(false) @map("is_primary")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  news     News     @relation(fields: [newsId], references: [id], onDelete: Cascade)
+  location Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  @@id([newsId, locationId])
+  @@map("news_locations")
+}
+
+model NewsTag {
+  newsId    String   @map("news_id") @db.Uuid
+  tagId     String   @map("tag_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  news News @relation(fields: [newsId], references: [id], onDelete: Cascade)
+  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([newsId, tagId])
+  @@map("news_tags")
+}
+
+model NewsRevision {
+  id            String   @id @default(uuid()) @db.Uuid
+  newsId        String   @map("news_id") @db.Uuid
+  versionNumber Int      @map("version_number")
+  title         String   @db.VarChar(300)
+  content       String   @db.Text
+  changedBy     String   @map("changed_by") @db.Uuid
+  changeSummary String?  @map("change_summary") @db.Text
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  news    News @relation(fields: [newsId], references: [id], onDelete: Cascade)
+  changer User @relation(fields: [changedBy], references: [id], onDelete: Restrict)
+
+  @@unique([newsId, versionNumber])
+  @@map("news_revisions")
+}
+
+model EditorialAction {
+  id          String              @id @default(uuid()) @db.Uuid
+  newsId      String              @map("news_id") @db.Uuid
+  action      EditorialActionType
+  performedBy String              @map("performed_by") @db.Uuid
+  remarks     String?             @db.Text
+  createdAt   DateTime            @default(now()) @map("created_at")
+
+  news      News @relation(fields: [newsId], references: [id], onDelete: Cascade)
+  performer User @relation(fields: [performedBy], references: [id], onDelete: Restrict)
+
+  @@map("editorial_actions")
+}
+
+// ==========================================
+// 5. MEDIA DOMAIN
+// ==========================================
+
+model Media {
+  id              String    @id @default(uuid()) @db.Uuid
+  uploadedBy      String    @map("uploaded_by") @db.Uuid
+  type            MediaType
+  originalName    String    @map("original_name") @db.VarChar(255)
+  storageKey      String    @map("storage_key") @db.Text
+  url             String    @db.Text
+  mimeType        String    @map("mime_type") @db.VarChar(100)
+  sizeBytes       BigInt    @map("size_bytes")
+  width           Int?
+  height          Int?
+  durationSeconds Decimal?  @map("duration_seconds") @db.Decimal(8, 2)
+  status          String    @default("ACTIVE") @db.VarChar(50)
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  deletedAt       DateTime? @map("deleted_at")
+
+  uploader       User            @relation("UploadedMedia", fields: [uploadedBy], references: [id], onDelete: Restrict)
+  featuredInNews News[]          @relation("FeaturedMedia")
+  newsMedia      NewsMedia[]
+  advertisements Advertisement[]
+
+  @@map("media")
+}
+
+model NewsMedia {
+  newsId       String    @map("news_id") @db.Uuid
+  mediaId      String    @map("media_id") @db.Uuid
+  mediaRole    MediaRole @map("media_role")
+  displayOrder Int       @default(0) @map("display_order")
+  caption      String?   @db.Text
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  news  News  @relation(fields: [newsId], references: [id], onDelete: Cascade)
+  media Media @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+
+  @@id([newsId, mediaId])
+  @@map("news_media")
+}
+
+// ==========================================
+// 6. SOURCES & VERIFICATION
+// ==========================================
+
+model Source {
+  id                String            @id @default(uuid()) @db.Uuid
+  name              String            @db.VarChar(255)
+  sourceType        SourceType        @map("source_type")
+  url               String?           @db.Text
+  description       String?           @db.Text
+  contactInfo       String?           @map("contact_info") @db.Text
+  credibilityStatus CredibilityStatus @default(UNVERIFIED) @map("credibility_status")
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+
+  newsSources NewsSource[]
+
+  @@map("sources")
+}
+
+model NewsSource {
+  newsId       String   @map("news_id") @db.Uuid
+  sourceId     String   @map("source_id") @db.Uuid
+  referenceUrl String?  @map("reference_url") @db.Text
+  sourceNote   String?  @map("source_note") @db.Text
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  news   News   @relation(fields: [newsId], references: [id], onDelete: Cascade)
+  source Source @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  @@id([newsId, sourceId])
+  @@map("news_sources")
+}
+
+model VerificationRecord {
+  id               String             @id @default(uuid()) @db.Uuid
+  newsId           String             @map("news_id") @db.Uuid
+  verifierId       String             @map("verifier_id") @db.Uuid
+  status           VerificationStatus @default(PENDING)
+  verificationType VerificationType   @map("verification_type")
+  findings         String?            @db.Text
+  evidence         String?            @db.Text
+  verifiedAt       DateTime?          @map("verified_at")
+  createdAt        DateTime           @default(now()) @map("created_at")
+  updatedAt        DateTime           @updatedAt @map("updated_at")
+
+  news     News @relation(fields: [newsId], references: [id], onDelete: Cascade)
+  verifier User @relation("Verifier", fields: [verifierId], references: [id], onDelete: Restrict)
+
+  @@map("verification_records")
+}
+
+// ==========================================
+// 7. ENGAGEMENT DOMAIN
+// ==========================================
+
+model Comment {
+  id        String        @id @default(uuid()) @db.Uuid
+  newsId    String        @map("news_id") @db.Uuid
+  userId    String        @map("user_id") @db.Uuid
+  parentId  String?       @map("parent_id") @db.Uuid
+  content   String        @db.Text
+  status    CommentStatus @default(PENDING)
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @updatedAt @map("updated_at")
+  deletedAt DateTime?     @map("deleted_at")
+
+  news            News            @relation(fields: [newsId], references: [id], onDelete: Cascade)
+  user            User            @relation(fields: [userId], references: [id], onDelete: Restrict)
+  parent          Comment?        @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies         Comment[]       @relation("CommentReplies")
+  reportedTargets ContentReport[]
+
+  @@index([newsId])
+  @@index([userId])
+  @@index([parentId])
+  @@index([status])
+  @@index([newsId, createdAt])
+  @@map("comments")
+}
+
+model Reaction {
+  id        String       @id @default(uuid()) @db.Uuid
+  newsId    String       @map("news_id") @db.Uuid
+  userId    String       @map("user_id") @db.Uuid
+  type      ReactionType
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
+
+  news News @relation(fields: [newsId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, newsId])
+  @@map("reactions")
+}
+
+model Bookmark {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  newsId    String   @map("news_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  news News @relation(fields: [newsId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, newsId])
+  @@map("bookmarks")
+}
+
+model ContentReport {
+  id             String       @id @default(uuid()) @db.Uuid
+  reporterId     String       @map("reporter_id") @db.Uuid
+  newsId         String?      @map("news_id") @db.Uuid
+  commentId      String?      @map("comment_id") @db.Uuid
+  reason         ReportReason
+  description    String?      @db.Text
+  status         ReportStatus @default(PENDING)
+  reviewedBy     String?      @map("reviewed_by") @db.Uuid
+  reviewedAt     DateTime?    @map("reviewed_at")
+  resolutionNote String?      @map("resolution_note") @db.Text
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+
+  reporter User     @relation("Reporter", fields: [reporterId], references: [id], onDelete: Restrict)
+  news     News?    @relation(fields: [newsId], references: [id], onDelete: Cascade)
+  comment  Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  reviewer User?    @relation("ReportReviewer", fields: [reviewedBy], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([status, createdAt])
+  @@map("content_reports")
+}
+
+// ==========================================
+// 8. NOTIFICATIONS & ADVERTISEMENTS
+// ==========================================
+
+model Notification {
+  id        String           @id @default(uuid()) @db.Uuid
+  userId    String           @map("user_id") @db.Uuid
+  type      NotificationType
+  title     String           @db.VarChar(255)
+  message   String           @db.Text
+  data      Json?
+  isRead    Boolean          @default(false) @map("is_read")
+  readAt    DateTime?        @map("read_at")
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead, createdAt])
+  @@map("notifications")
+}
+
+model Advertisement {
+  id             String    @id @default(uuid()) @db.Uuid
+  name           String    @db.VarChar(200)
+  advertiserName String    @map("advertiser_name") @db.VarChar(200)
+  type           String    @db.VarChar(50)
+  mediaId        String?   @map("media_id") @db.Uuid
+  targetUrl      String?   @map("target_url") @db.Text
+  startAt        DateTime  @map("start_at")
+  endAt          DateTime  @map("end_at")
+  status         AdStatus  @default(DRAFT)
+  priority       Int       @default(0)
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  media      Media?        @relation(fields: [mediaId], references: [id], onDelete: SetNull)
+  placements AdPlacement[]
+
+  @@map("advertisements")
+}
+
+model AdPlacement {
+  id              String          @id @default(uuid()) @db.Uuid
+  advertisementId String          @map("advertisement_id") @db.Uuid
+  placement       AdPlacementType
+  pageType        String          @map("page_type") @db.VarChar(50)
+  isActive        Boolean         @default(true) @map("is_active")
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+
+  advertisement Advertisement @relation(fields: [advertisementId], references: [id], onDelete: Cascade)
+
+  @@map("ad_placements")
+}
+
+// ==========================================
+// 9. SEO & AUDIT LOGS
+// ==========================================
+
+model SeoMetadata {
+  id            String   @id @default(uuid()) @db.Uuid
+  newsId        String?  @unique @map("news_id") @db.Uuid
+  title         String   @db.VarChar(300)
+  description   String   @db.Text
+  canonicalUrl  String?  @map("canonical_url") @db.Text
+  ogTitle       String?  @map("og_title") @db.VarChar(300)
+  ogDescription String?  @map("og_description") @db.Text
+  ogImage       String?  @map("og_image") @db.Text
+  robots        String?  @db.VarChar(100)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  news News? @relation(fields: [newsId], references: [id], onDelete: Cascade)
+
+  @@map("seo_metadata")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  actorId    String?  @map("actor_id") @db.Uuid
+  action     String   @db.VarChar(100)
+  entityType String   @map("entity_type") @db.VarChar(100)
+  entityId   String?  @map("entity_id") @db.Uuid
+  oldValues  Json?    @map("old_values")
+  newValues  Json?    @map("new_values")
+  ipAddress  String?  @map("ip_address") @db.VarChar(45)
+  userAgent  String?  @map("user_agent") @db.Text
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  actor User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([actorId])
+  @@index([entityType, entityId])
+  @@map("audit_logs")
+}
+
+// ==========================================
+// 10. SYSTEM SETTINGS & ANALYTICS
+// ==========================================
+
+model SystemSetting {
+  id          String   @id @default(uuid()) @db.Uuid
+  key         String   @unique @db.VarChar(150)
+  value       Json
+  description String?  @db.Text
+  isPublic    Boolean  @default(false) @map("is_public")
+  updatedBy   String?  @map("updated_by") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  updater User? @relation(fields: [updatedBy], references: [id], onDelete: SetNull)
+
+  @@map("system_settings")
+}
+
+model NewsViewEvent {
+  id         String   @id @default(uuid()) @db.Uuid
+  newsId     String   @map("news_id") @db.Uuid
+  userId     String?  @map("user_id") @db.Uuid
+  sessionId  String?  @map("session_id") @db.VarChar(100)
+  ipHash     String?  @map("ip_hash") @db.VarChar(255)
+  referrer   String?  @db.Text
+  deviceType String?  @map("device_type") @db.VarChar(50)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  news News  @relation(fields: [newsId], references: [id], onDelete: Cascade)
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([newsId])
+  @@index([newsId, createdAt])
+  @@map("news_view_events")
+}
+
+model NewsStatistics {
+  newsId      String   @id @map("news_id") @db.Uuid
+  views       BigInt   @default(0)
+  uniqueViews BigInt   @default(0) @map("unique_views")
+  likes       BigInt   @default(0)
+  comments    BigInt   @default(0)
+  bookmarks   BigInt   @default(0)
+  shares      BigInt   @default(0)
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  news News @relation(fields: [newsId], references: [id], onDelete: Cascade)
+
+  @@map("news_statistics")
 }
