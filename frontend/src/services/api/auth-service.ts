@@ -1,5 +1,5 @@
 import { apiClient } from './api-client';
-import { UserProfile } from '@/types/common.types';
+import { UserProfile, UserSession } from '@/types/common.types';
 
 export interface LoginPayload {
   email: string;
@@ -12,6 +12,11 @@ export interface RegisterPayload {
   email: string;
   password?: string;
   phone?: string;
+}
+
+export interface ChangePasswordPayload {
+  currentPassword: string;
+  newPassword: string;
 }
 
 export interface AuthResponseData {
@@ -43,6 +48,32 @@ export class AuthService {
 
   public static async resetPassword(token: string, newPassword?: string): Promise<void> {
     await apiClient.post('/auth/reset-password', { token, newPassword });
+  }
+
+  public static async changePassword(payload: ChangePasswordPayload): Promise<void> {
+    await apiClient.post('/auth/change-password', payload);
+  }
+
+  public static async getSessions(): Promise<UserSession[]> {
+    const response = await apiClient.get<UserSession[]>('/auth/sessions');
+    return response.data;
+  }
+
+  public static async revokeSession(sessionId: string): Promise<void> {
+    await apiClient.delete(`/auth/sessions/${sessionId}`);
+  }
+
+  public static async logoutAll(): Promise<void> {
+    try {
+      await apiClient.post('/auth/logout-all');
+    } finally {
+      localStorage.removeItem('ab_access_token');
+    }
+  }
+
+  public static async resendVerification(): Promise<string> {
+    const response = await apiClient.post<{ message?: string }>('/auth/resend-verification');
+    return response.message || 'Verification link re-sent successfully';
   }
 
   public static async logout(): Promise<void> {

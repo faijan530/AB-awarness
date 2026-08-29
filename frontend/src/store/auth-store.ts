@@ -16,6 +16,7 @@ interface AuthState {
   login: (payload: LoginPayload) => Promise<void>;
   register: (payload: RegisterPayload) => Promise<void>;
   logout: () => Promise<void>;
+  logoutAll: () => Promise<void>;
   clearError: () => void;
   setSessionExpired: () => void;
 
@@ -112,6 +113,21 @@ export const useAuthStore = create<AuthState>((set, get) => {
       set({ isLoading: true });
       try {
         await AuthService.logout();
+      } finally {
+        set({
+          user: null,
+          isAuthenticated: false,
+          sessionStatus: 'UNAUTHENTICATED',
+          isLoading: false,
+          error: null,
+        });
+      }
+    },
+
+    logoutAll: async () => {
+      set({ isLoading: true });
+      try {
+        await AuthService.logoutAll();
       } finally {
         set({
           user: null,

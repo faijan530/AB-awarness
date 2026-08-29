@@ -31,6 +31,14 @@ export interface UserProfile {
   createdAt?: string;
 }
 
+export interface UserSession {
+  id: string;
+  createdAt: string;
+  expiresAt: string;
+  deviceInfo?: string | null;
+  ipAddress?: string | null;
+}
+
 export type SessionStatus = 'AUTHENTICATED' | 'UNAUTHENTICATED' | 'EXPIRED';
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info';
