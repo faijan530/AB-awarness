@@ -1,7 +1,15 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 import { ApiSuccessResponse } from '@/types/api.types';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
+const getNormalizedBaseUrl = (): string => {
+  const envUrl = (import.meta.env.VITE_API_BASE_URL || '').trim();
+  if (!envUrl) return '/api/v1';
+  const cleanUrl = envUrl.replace(/\/+$/, '');
+  if (cleanUrl.endsWith('/api/v1')) return cleanUrl;
+  return `${cleanUrl}/api/v1`;
+};
+
+const API_BASE_URL = getNormalizedBaseUrl();
 
 export const httpClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
