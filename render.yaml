@@ -1,0 +1,51 @@
+services:
+  # 1. Backend Web Service (Node.js / Express / TypeScript / Prisma)
+  - type: web
+    name: ab-awareness-backend
+    env: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ab-awareness-db
+          property: connectionString
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: CORS_ORIGIN
+        value: "*"
+
+  # 2. Frontend Static Site (Vite / React / Tailwind)
+  - type: static
+    name: ab-awareness-frontend
+    plan: free
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_BASE_URL
+        fromService:
+          type: web
+          name: ab-awareness-backend
+          property: url
+          suffix: /api/v1
+
+databases:
+  # Managed PostgreSQL Database
+  - name: ab-awareness-db
+    databaseName: abawareness
+    user: postgres
+    plan: free

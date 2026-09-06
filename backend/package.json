@@ -4,7 +4,7 @@
   "description": "Backend modular monolith for Abhishek Bhardwaj Media Platform",
   "main": "dist/server.js",
   "scripts": {
-    "build": "npx -p typescript tsc",
+    "build": "prisma generate && tsc",
     "start": "node dist/server.js",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "prisma:generate": "prisma generate",
