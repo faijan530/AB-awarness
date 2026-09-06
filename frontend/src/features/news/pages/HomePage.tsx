@@ -12,6 +12,7 @@ import { Badge } from '@/components/common/Badge';
 import { Button } from '@/components/common/Button';
 import { Skeleton } from '@/components/common/Skeleton';
 import { EmptyState } from '@/components/common/EmptyState';
+import { NewsCard } from '@/components/news/NewsCard';
 import { 
   Flame, 
   ShieldCheck, 
@@ -29,7 +30,8 @@ import {
   AlertCircle,
   RefreshCw,
   Radio,
-  Compass
+  Sparkles,
+  Layers
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AdBanner } from '@/components/ads/AdBanner';
@@ -95,7 +97,11 @@ export const HomePage: React.FC = () => {
       }),
   });
 
-  const handleShare = (title: string) => {
+  const handleShare = (title: string, slug: string) => {
+    const url = `${window.location.origin}/news/${slug}`;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(url);
+    }
     toast.success('Link Copied!', `Article link for "${title}" copied to clipboard.`);
   };
 
@@ -103,27 +109,15 @@ export const HomePage: React.FC = () => {
     toast.success('Bookmarked!', `"${title}" saved to your reading list.`);
   };
 
-  const formatDate = (dateStr?: string | Date | null) => {
-    if (!dateStr) return 'Recently published';
-    try {
-      return new Date(dateStr).toLocaleTimeString(undefined, {
-        hour: '2-digit',
-        minute: '2-digit',
-      });
-    } catch {
-      return 'Recently published';
-    }
-  };
-
   return (
-    <div className="space-y-10 pb-16">
+    <div className="space-y-10 pb-16 animate-in fade-in duration-300">
       {/* Live Breaking News Ticker Bar */}
       {breakingAlerts.length > 0 && (
-        <div className="flex items-center gap-3 bg-gradient-to-r from-rose-950 via-slate-900 to-rose-950 p-2.5 px-4 rounded-2xl border border-rose-500/30 shadow-lg animate-pulse-slow">
-          <span className="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-rose-600 text-white flex items-center gap-1 shrink-0">
-            <Radio className="w-3 h-3 animate-ping" /> BREAKING NEWS
+        <div className="flex items-center gap-3 bg-gradient-to-r from-rose-950/90 via-[#111827] to-rose-950/90 p-3 px-4 rounded-2xl border border-rose-500/30 shadow-xl backdrop-blur-md">
+          <span className="px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider bg-rose-600 text-white flex items-center gap-1.5 shrink-0 shadow-md shadow-rose-950">
+            <Radio className="w-3.5 h-3.5 animate-ping" /> BREAKING NEWS
           </span>
-          <div className="overflow-hidden whitespace-nowrap text-xs text-rose-200 font-bold truncate">
+          <div className="overflow-hidden whitespace-nowrap text-xs text-rose-100 font-bold truncate">
             {breakingAlerts[0].title} — <span className="text-slate-400 font-normal">{breakingAlerts[0].summary}</span>
           </div>
         </div>
@@ -132,25 +126,25 @@ export const HomePage: React.FC = () => {
       {/* Leaderboard Ad Slot */}
       <AdBanner placementCode="HOME_TOP" />
 
-      {/* Top Weather & Quick Regional Info Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-gradient-to-r from-slate-900/90 via-[#0a0f1d] to-slate-900/90 p-3.5 px-5 rounded-2xl border border-rose-500/15 shadow-lg">
-        <div className="flex items-center gap-3 text-xs text-slate-300 font-medium">
-          <div className="flex items-center gap-1.5 text-amber-400 font-bold bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/20">
-            <CloudSun className="w-4 h-4" /> 28°C Sunny
+      {/* Top Weather & Quick Regional Telemetry Bar */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-gradient-to-r from-[#090d19] via-[#0d1326] to-[#090d19] p-3.5 px-6 rounded-2xl border border-indigo-500/15 shadow-xl">
+        <div className="flex flex-wrap items-center gap-3 text-xs text-slate-300 font-medium">
+          <div className="flex items-center gap-1.5 text-amber-400 font-bold bg-amber-500/10 px-3 py-1 rounded-xl border border-amber-500/20">
+            <CloudSun className="w-4 h-4 text-amber-400" /> 28°C Sunny
           </div>
-          <span className="hidden md:inline text-slate-400">Palamu Division Regional Hub</span>
-          <span className="text-slate-500">•</span>
-          <span className="text-emerald-400 font-semibold flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Live News Engine Connected
+          <span className="hidden md:inline text-slate-400">Palamu Division Regional News Hub</span>
+          <span className="text-slate-600">•</span>
+          <span className="text-emerald-400 font-semibold flex items-center gap-1.5 font-mono">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Live Telemetry Engine Connected
           </span>
         </div>
 
         <div className="flex items-center gap-2 text-xs">
-          <span className="text-slate-400 font-medium">Trending Topics:</span>
-          <span className="px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-300 border border-rose-500/20 text-[11px] font-bold">
-            #PalamuHighway
+          <span className="text-slate-400 font-semibold">Hot Topics:</span>
+          <span className="px-2.5 py-0.5 rounded-full bg-rose-500/10 text-rose-300 border border-rose-500/20 text-[11px] font-bold">
+            #PalamuNH75
           </span>
-          <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 text-[11px] font-bold">
+          <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 text-[11px] font-bold">
             #GarhwaAgri
           </span>
         </div>
@@ -158,7 +152,8 @@ export const HomePage: React.FC = () => {
 
       {/* Main Hero Spotlight Showcase */}
       {featuredStory ? (
-        <section className="relative overflow-hidden rounded-3xl border border-rose-500/20 shadow-2xl group bg-gradient-to-br from-slate-900 via-[#070a12] to-slate-950">
+        <section className="relative overflow-hidden rounded-3xl border border-rose-500/25 shadow-2xl group bg-gradient-to-br from-slate-900 via-[#090e1f] to-slate-950">
+          {/* Background Glows */}
           <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
             <div className="absolute -top-24 -left-24 w-96 h-96 bg-rose-500/10 rounded-full blur-3xl" />
             <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl" />
@@ -177,15 +172,15 @@ export const HomePage: React.FC = () => {
                   <Badge variant="emerald" pulse>
                     <ShieldCheck className="w-3.5 h-3.5 inline mr-1" /> Super Admin Verified
                   </Badge>
-                  <span className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-rose-600 text-white shadow-md shadow-rose-950">
+                  <span className="px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-rose-600 text-white shadow-md shadow-rose-950">
                     {featuredStory.category?.name || 'FEATURED REPORT'}
                   </span>
-                  <span className="text-xs text-slate-300 font-semibold flex items-center gap-1 bg-slate-900/80 px-2.5 py-1 rounded-lg border border-slate-800">
+                  <span className="text-xs text-slate-300 font-semibold flex items-center gap-1 bg-slate-900/90 px-3 py-1 rounded-xl border border-slate-800">
                     <MapPin className="w-3.5 h-3.5 text-rose-400" /> {featuredStory.location?.name || 'Jharkhand'}
                   </span>
                 </div>
 
-                <h2 className="text-2xl sm:text-4xl md:text-5xl font-black font-serif text-white tracking-tight leading-tight">
+                <h2 className="text-2xl sm:text-4xl md:text-5xl font-black font-serif text-white tracking-tight leading-tight group-hover:text-rose-100 transition-colors">
                   {featuredStory.title}
                 </h2>
 
@@ -200,7 +195,7 @@ export const HomePage: React.FC = () => {
                     <FileText className="w-3.5 h-3.5" /> Author: {featuredStory.author?.fullName || 'Citizen Reporter'}
                   </span>
                   <span className="flex items-center gap-1 text-slate-300">
-                    <Eye className="w-3.5 h-3.5 text-rose-400" /> {featuredStory.viewCount} Views
+                    <Eye className="w-3.5 h-3.5 text-rose-400" /> {featuredStory.viewCount} Readers Reached
                   </span>
                 </div>
 
@@ -233,14 +228,17 @@ export const HomePage: React.FC = () => {
         {/* Left 2 Columns: Category Filters & News Feed */}
         <div className="lg:col-span-2 space-y-6">
           {/* Header & Category Tabs */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-rose-950/40 pb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-indigo-500/15 pb-4">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-rose-500/15 text-rose-400 border border-rose-500/30 flex items-center justify-center">
-                <Flame className="w-4 h-4 animate-bounce" />
+              <div className="w-9 h-9 rounded-2xl bg-rose-500/15 text-rose-400 border border-rose-500/30 flex items-center justify-center shadow-inner">
+                <Flame className="w-5 h-5 text-rose-400 animate-bounce" />
               </div>
-              <h3 className="text-xl font-black text-white font-serif tracking-tight">
-                Live News Feed & Coverage
-              </h3>
+              <div>
+                <h3 className="text-xl font-black text-white font-serif tracking-tight">
+                  Live News Feed & Coverage
+                </h3>
+                <p className="text-xs text-slate-400 font-medium">Real-time local journalism updates</p>
+              </div>
             </div>
 
             {/* Dynamic Category Filter Tabs from Database */}
@@ -250,10 +248,10 @@ export const HomePage: React.FC = () => {
                   setActiveCategory('all');
                   setPage(1);
                 }}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap active:scale-95 ${
                   activeCategory === 'all'
-                    ? 'bg-rose-600 text-white shadow-md shadow-rose-950'
-                    : 'bg-slate-900/60 text-slate-400 hover:text-white hover:bg-slate-800'
+                    ? 'bg-rose-600 text-white shadow-lg shadow-rose-950 border border-rose-400/30'
+                    : 'bg-slate-900/80 text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800'
                 }`}
               >
                 All Stories
@@ -265,10 +263,10 @@ export const HomePage: React.FC = () => {
                     setActiveCategory(cat.slug);
                     setPage(1);
                   }}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap active:scale-95 ${
                     activeCategory === cat.slug
-                      ? 'bg-rose-600 text-white shadow-md shadow-rose-950'
-                      : 'bg-slate-900/60 text-slate-400 hover:text-white hover:bg-slate-800'
+                      ? 'bg-rose-600 text-white shadow-lg shadow-rose-950 border border-rose-400/30'
+                      : 'bg-slate-900/80 text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800'
                   }`}
                 >
                   {cat.name}
@@ -278,19 +276,19 @@ export const HomePage: React.FC = () => {
           </div>
 
           {/* Dynamic Geographic Region Filter Tabs */}
-          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-2">
-            <span className="text-[11px] font-extrabold uppercase text-slate-400 font-mono flex items-center gap-1 shrink-0 pr-1">
-              <MapPin className="w-3.5 h-3.5 text-emerald-400" /> Region:
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2">
+            <span className="text-[11px] font-black uppercase text-slate-400 font-mono flex items-center gap-1 shrink-0 pr-1">
+              <MapPin className="w-3.5 h-3.5 text-emerald-400" /> District Region:
             </span>
             <button
               onClick={() => {
                 setActiveLocation('all');
                 setPage(1);
               }}
-              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap active:scale-95 ${
                 activeLocation === 'all'
-                  ? 'bg-emerald-600 text-white shadow-md'
-                  : 'bg-slate-900/60 text-slate-400 hover:text-white hover:bg-slate-800'
+                  ? 'bg-emerald-600 text-white shadow-md border border-emerald-400/30'
+                  : 'bg-slate-900/80 text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800'
               }`}
             >
               All Regions
@@ -302,10 +300,10 @@ export const HomePage: React.FC = () => {
                   setActiveLocation(loc.slug);
                   setPage(1);
                 }}
-                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap active:scale-95 ${
                   activeLocation === loc.slug
-                    ? 'bg-emerald-600 text-white shadow-md'
-                    : 'bg-slate-900/60 text-slate-400 hover:text-white hover:bg-slate-800'
+                    ? 'bg-emerald-600 text-white shadow-md border border-emerald-400/30'
+                    : 'bg-slate-900/80 text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800'
                 }`}
               >
                 {loc.name}
@@ -337,7 +335,7 @@ export const HomePage: React.FC = () => {
           {!isLoadingFeed && !isFeedError && newsFeedData?.articles.length === 0 && (
             <EmptyState
               title="No Stories Available"
-              description="No published news stories match the selected category filter."
+              description="No published news stories match the selected category or regional district filter."
             />
           )}
 
@@ -345,57 +343,40 @@ export const HomePage: React.FC = () => {
           {!isLoadingFeed && !isFeedError && newsFeedData && newsFeedData.articles.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {newsFeedData.articles.map((art: NewsArticle) => (
-                <div
+                <NewsCard
                   key={art.id}
-                  className="glass-card-user rounded-2xl p-5 space-y-4 hover:border-rose-500/30 transition-all duration-300 flex flex-col justify-between group"
-                >
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="px-2.5 py-0.5 rounded-md text-[11px] font-extrabold bg-rose-500/15 text-rose-300 border border-rose-500/30">
-                        {art.category?.name || 'GENERAL'}
-                      </span>
-                      <span className="text-[11px] text-slate-400 font-mono flex items-center gap-1">
-                        <MapPin className="w-3 h-3 text-rose-400" /> {art.location?.name || 'Jharkhand'}
-                      </span>
-                    </div>
-
-                    <Link to={`/news/${art.slug}`}>
-                      <h4 className="font-bold text-slate-100 text-base hover:text-rose-400 transition-colors leading-snug group-hover:text-rose-300">
-                        {art.title}
-                      </h4>
-                    </Link>
-
-                    <p className="text-xs text-slate-400 line-clamp-3 leading-relaxed">
-                      {art.summary || art.content.substring(0, 120) + '...'}
-                    </p>
-                  </div>
-
-                  <div className="pt-3 flex items-center justify-between text-xs text-slate-500 border-t border-slate-800/80">
-                    <span className="flex items-center gap-1 text-slate-400 font-mono">
-                      <Clock className="w-3.5 h-3.5 text-rose-400" /> {formatDate(art.publishedAt)}
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => handleShare(art.title)}
-                        className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
-                        title="Share Link"
-                      >
-                        <Share2 className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        onClick={() => handleBookmark(art.title)}
-                        className="p-1.5 text-slate-400 hover:text-amber-400 rounded-lg hover:bg-slate-800 transition-colors"
-                        title="Bookmark"
-                      >
-                        <Bookmark className="w-3.5 h-3.5" />
-                      </button>
-                      <Link to={`/news/${art.slug}`} className="text-rose-400 font-extrabold hover:underline ml-1">
-                        Read →
-                      </Link>
-                    </div>
-                  </div>
-                </div>
+                  article={art}
+                  onShare={handleShare}
+                  onBookmark={handleBookmark}
+                />
               ))}
+            </div>
+          )}
+
+          {/* Feed Pagination */}
+          {newsFeedData && newsFeedData.totalPages > 1 && (
+            <div className="flex items-center justify-between pt-4 border-t border-indigo-500/15 text-xs text-slate-400">
+              <span>
+                Page {page} of {newsFeedData.totalPages} ({newsFeedData.total} articles)
+              </span>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={page <= 1}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                >
+                  Previous
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={page >= newsFeedData.totalPages}
+                  onClick={() => setPage((p) => p + 1)}
+                >
+                  Next Page
+                </Button>
+              </div>
             </div>
           )}
         </div>
@@ -403,12 +384,15 @@ export const HomePage: React.FC = () => {
         {/* Right 1 Column: Trending News & Citizen Desk Widgets */}
         <aside className="space-y-6">
           {/* Trending News Widget */}
-          <div className="glass-card-user rounded-2xl p-6 space-y-4">
-            <div className="flex items-center gap-2.5 border-b border-slate-800 pb-3">
-              <div className="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center">
-                <TrendingUp className="w-4 h-4" />
+          <div className="glass-card-user rounded-2xl p-6 space-y-4 border-slate-800">
+            <div className="flex items-center gap-2.5 border-b border-indigo-500/15 pb-3">
+              <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center shadow-inner">
+                <TrendingUp className="w-4.5 h-4.5 text-amber-400" />
               </div>
-              <h4 className="font-extrabold text-white text-sm">Trending Headlines</h4>
+              <div>
+                <h4 className="font-extrabold text-white text-sm">Trending Headlines</h4>
+                <p className="text-[10px] text-slate-400 font-mono">Most read across Jharkhand</p>
+              </div>
             </div>
 
             {trendingStories.length > 0 ? (
@@ -417,13 +401,13 @@ export const HomePage: React.FC = () => {
                   <Link
                     key={story.id}
                     to={`/news/${story.slug}`}
-                    className="block p-3 rounded-xl bg-slate-900/60 hover:bg-slate-900 border border-slate-800/80 hover:border-amber-500/30 transition-all space-y-1 group"
+                    className="block p-3.5 rounded-xl bg-[#0a0e1c]/80 hover:bg-[#0f152b] border border-indigo-500/15 hover:border-amber-500/30 transition-all space-y-1 group transform-gpu active:scale-98"
                   >
                     <div className="flex items-center gap-2">
                       <span className="text-amber-400 font-black font-mono text-xs">#{idx + 1}</span>
-                      <span className="text-[10px] text-slate-400 font-mono uppercase">{story.category?.name || 'NEWS'}</span>
+                      <span className="text-[10px] text-slate-400 font-mono uppercase font-bold">{story.category?.name || 'NEWS'}</span>
                     </div>
-                    <p className="text-xs font-semibold text-slate-200 group-hover:text-amber-300 transition-colors leading-snug line-clamp-2">
+                    <p className="text-xs font-bold text-slate-200 group-hover:text-amber-300 transition-colors leading-snug line-clamp-2">
                       {story.title}
                     </p>
                   </Link>
@@ -465,20 +449,23 @@ export const HomePage: React.FC = () => {
           </div>
 
           {/* Fact-Check Corner */}
-          <div className="glass-card-user rounded-2xl p-6 space-y-4">
-            <div className="flex items-center gap-2.5 border-b border-slate-800 pb-3">
-              <div className="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center">
-                <CheckCircle className="w-4 h-4" />
+          <div className="glass-card-user rounded-2xl p-6 space-y-4 border-slate-800">
+            <div className="flex items-center gap-2.5 border-b border-indigo-500/15 pb-3">
+              <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center shadow-inner">
+                <CheckCircle className="w-4.5 h-4.5 text-emerald-400" />
               </div>
-              <h4 className="font-extrabold text-white text-sm">Fact-Check Corner</h4>
+              <div>
+                <h4 className="font-extrabold text-white text-sm">Fact-Check Corner</h4>
+                <p className="text-[10px] text-slate-400 font-mono">Misinformation Audit</p>
+              </div>
             </div>
 
-            <div className="p-3.5 bg-slate-900/90 rounded-xl border border-slate-800 space-y-2">
+            <div className="p-3.5 bg-[#090d19] rounded-xl border border-indigo-500/15 space-y-2">
               <div className="flex items-center justify-between">
                 <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
                   <CheckCircle className="w-3 h-3 text-emerald-400" /> VERIFIED TRUE
                 </span>
-                <span className="text-[10px] text-slate-500">Latehar Block</span>
+                <span className="text-[10px] text-slate-500 font-mono">Latehar Block</span>
               </div>
               <p className="text-xs font-semibold text-slate-200 leading-snug">
                 Claim regarding rural electrification completion in Mahuadanr block verified against state power department audit logs.

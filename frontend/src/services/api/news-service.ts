@@ -11,6 +11,7 @@ export interface NewsArticle {
   viewCount: number;
   isFeatured: boolean;
   isBreaking: boolean;
+  isFactChecked?: boolean;
   publishedAt: string | null;
   createdAt: string;
   category: {
