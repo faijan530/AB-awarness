@@ -184,8 +184,13 @@ async function main() {
 
   // 7. Seed Default Super Admin Account
   console.log('...Seeding Default Super Admin Account');
-  const adminEmail = process.env.SUPER_ADMIN_EMAIL || 'admin@abmedia.in';
-  const adminPassword = process.env.SUPER_ADMIN_PASSWORD || 'AdminPassword123!';
+  const adminEmail = process.env.SUPER_ADMIN_EMAIL;
+  const adminPassword = process.env.SUPER_ADMIN_PASSWORD;
+
+  if (!adminEmail || !adminPassword) {
+    throw new Error('❌ Missing SUPER_ADMIN_EMAIL or SUPER_ADMIN_PASSWORD in environment variables (.env).');
+  }
+
   const adminPasswordHash = await PasswordService.hashPassword(adminPassword);
 
   let superAdminUser = await prisma.user.findUnique({

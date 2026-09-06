@@ -1,4 +1,6 @@
 import http from 'http';
+import dotenv from 'dotenv';
+dotenv.config();
 
 async function makeRequest(options: http.RequestOptions, postData?: any): Promise<{ statusCode: number; body: any }> {
   return new Promise((resolve, reject) => {
@@ -34,6 +36,9 @@ async function runLiveHttpTests() {
 
   // STEP 1: Authenticate Super Admin via HTTP POST
   console.log('▶ [1/7] Authenticating Super Admin via POST /api/v1/auth/login...');
+  const adminEmail = process.env.SUPER_ADMIN_EMAIL || 'admin@abmedia.in';
+  const adminPassword = process.env.SUPER_ADMIN_PASSWORD || 'AdminPassword123!';
+
   const loginRes = await makeRequest(
     {
       hostname: 'localhost',
@@ -42,7 +47,7 @@ async function runLiveHttpTests() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
     },
-    { email: 'admin@abmedia.in', password: 'AdminPassword123!' }
+    { email: adminEmail, password: adminPassword }
   );
 
   if (loginRes.statusCode !== 200 || !loginRes.body?.data?.accessToken) {
