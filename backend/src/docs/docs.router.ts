@@ -1,4 +1,3 @@
-import { Router, Request, Response } from 'react'; // wait, express Router
 import express from 'express';
 import { openApiSpec } from './openapi.spec';
 
