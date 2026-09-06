@@ -419,8 +419,8 @@ export const AdminNewsPage: React.FC = () => {
 
           {/* Pagination Footer */}
           {newsData.totalPages > 1 && (
-            <div className="p-4 bg-slate-900/80 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400 font-mono">
-              <span>
+            <div className="p-4 bg-slate-900/80 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 font-mono gap-3">
+              <span className="text-center sm:text-left">
                 Page {newsData.page} of {newsData.totalPages} ({newsData.total} items)
               </span>
               <div className="flex items-center gap-2">

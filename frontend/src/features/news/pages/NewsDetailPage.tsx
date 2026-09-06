@@ -229,13 +229,14 @@ export const NewsDetailPage: React.FC = () => {
           <Badge variant="rose">{article.category?.name || 'GENERAL NEWS'}</Badge>
           <div className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shadow-md">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Verified Story — Verified according to platform editorial verification workflow</span>
+            <span className="hidden sm:inline">Verified Story — Verified according to platform editorial verification workflow</span>
+            <span className="sm:hidden">Verified Story</span>
           </div>
           {article.isBreaking && <Badge variant="rose">BREAKING NEWS</Badge>}
           {article.isFeatured && <Badge variant="amber">FEATURED HERO</Badge>}
         </div>
 
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-black font-serif text-white tracking-tight leading-tight">
+        <h1 className="text-2xl sm:text-4xl md:text-5xl font-black font-serif text-white tracking-tight leading-tight">
           {article.title}
         </h1>
 

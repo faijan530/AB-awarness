@@ -9,11 +9,11 @@ export interface CardProps extends HTMLAttributes<HTMLDivElement> {
 export const Card = React.forwardRef<HTMLDivElement, CardProps>(
   ({ className, variant = 'glass', hoverEffect = false, children, ...props }, ref) => {
     const variants = {
-      glass: 'glass-panel rounded-2xl border border-slate-800/80 p-6 shadow-xl',
-      solid: 'bg-slate-900/90 rounded-2xl border border-slate-800 p-6 shadow-lg',
-      bordered: 'bg-slate-950/40 rounded-2xl border border-slate-800/80 p-6',
-      'glow-rose': 'glass-panel rounded-2xl border-glow-rose p-6 shadow-2xl',
-      'glow-emerald': 'glass-panel rounded-2xl border-glow-emerald p-6 shadow-2xl',
+      glass: 'glass-panel rounded-2xl border border-slate-800/80 p-4 sm:p-6 shadow-xl',
+      solid: 'bg-slate-900/90 rounded-2xl border border-slate-800 p-4 sm:p-6 shadow-lg',
+      bordered: 'bg-slate-950/40 rounded-2xl border border-slate-800/80 p-4 sm:p-6',
+      'glow-rose': 'glass-panel rounded-2xl border-glow-rose p-4 sm:p-6 shadow-2xl',
+      'glow-emerald': 'glass-panel rounded-2xl border-glow-emerald p-4 sm:p-6 shadow-2xl',
     };
 
     return (

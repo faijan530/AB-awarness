@@ -190,9 +190,9 @@ export const AdminDashboardPage: React.FC = () => {
 
       {/* Editorial Review Queue Table */}
       <div className="glass-card-admin rounded-2xl space-y-4 p-5">
-        <div className="flex items-center justify-between border-b border-indigo-500/15 pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-indigo-500/15 pb-4 gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center shadow-inner">
+            <div className="w-8 h-8 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center shadow-inner shrink-0">
               <Layers className="w-4 h-4" />
             </div>
             <h3 className="font-bold text-slate-100 text-base">
@@ -200,7 +200,7 @@ export const AdminDashboardPage: React.FC = () => {
             </h3>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2.5">
             <span className="text-xs text-indigo-300/80 font-medium bg-indigo-950/60 px-3 py-1 rounded-full border border-indigo-500/20">
               {pendingQueue.length} pending verification
             </span>

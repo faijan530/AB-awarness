@@ -284,14 +284,14 @@ export const ProfilePage: React.FC = () => {
   return (
     <div className="space-y-8 pb-12 max-w-6xl mx-auto">
       {/* Header Profile Banner */}
-      <div className="glass-panel p-6 rounded-2xl border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="flex items-center gap-5">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center font-black text-white text-2xl shadow-lg shadow-emerald-500/20">
+      <div className="glass-panel p-4 sm:p-6 rounded-2xl border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6">
+        <div className="flex items-center gap-4 sm:gap-5 min-w-0">
+          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center font-black text-white text-xl sm:text-2xl shadow-lg shadow-emerald-500/20 shrink-0">
             {getUserInitials(user.fullName)}
           </div>
-          <div>
+          <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-2xl font-black text-white">{user.fullName}</h1>
+              <h1 className="text-xl sm:text-2xl font-black text-white truncate">{user.fullName}</h1>
               {user.roles?.map((role) => (
                 <Badge key={role} variant={role === 'SUPER_ADMIN' ? 'rose' : 'emerald'}>
                   {role === 'SUPER_ADMIN' ? 'SUPER ADMIN' : 'CITIZEN REPORTER'}
@@ -301,14 +301,14 @@ export const ProfilePage: React.FC = () => {
                 STATUS: {user.status || 'ACTIVE'}
               </Badge>
             </div>
-            <p className="text-xs text-slate-400 mt-1 flex items-center gap-2">
-              <Mail className="w-3.5 h-3.5 text-slate-400" /> {user.email || 'No email attached'}
+            <p className="text-xs text-slate-400 mt-1 flex items-center gap-2 truncate">
+              <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" /> <span className="truncate">{user.email || 'No email attached'}</span>
               {user.emailVerified ? (
-                <span className="inline-flex items-center gap-0.5 text-emerald-400 font-medium text-[11px]">
+                <span className="inline-flex items-center gap-0.5 text-emerald-400 font-medium text-[11px] shrink-0">
                   <CheckCircle2 className="w-3 h-3" /> Verified
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-0.5 text-amber-400 font-medium text-[11px]">
+                <span className="inline-flex items-center gap-0.5 text-amber-400 font-medium text-[11px] shrink-0">
                   <AlertTriangle className="w-3 h-3" /> Unverified
                 </span>
               )}
@@ -316,7 +316,7 @@ export const ProfilePage: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-3 self-end md:self-auto">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <Button
             variant="outline"
             size="sm"

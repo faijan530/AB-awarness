@@ -263,7 +263,7 @@ export const AdminAdvertisingPage: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => setShowAdvertiserModal(true)}>
             <Building className="w-3.5 h-3.5 mr-1.5" /> New Advertiser
           </Button>

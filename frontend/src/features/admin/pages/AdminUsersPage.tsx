@@ -440,8 +440,8 @@ export const AdminUsersPage: React.FC = () => {
 
         {/* Pagination Bar */}
         {!isLoadingUsers && userListData && userListData.totalPages > 1 && (
-          <div className="p-4 border-t border-indigo-500/20 flex items-center justify-between text-xs text-slate-400 font-mono">
-            <span>
+          <div className="p-4 border-t border-indigo-500/20 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 font-mono gap-3">
+            <span className="text-center sm:text-left">
               Showing Page <strong className="text-white">{userListData.page}</strong> of <strong className="text-white">{userListData.totalPages}</strong> ({userListData.total} Total Users)
             </span>
             <div className="flex items-center gap-2">

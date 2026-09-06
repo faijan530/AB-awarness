@@ -113,11 +113,11 @@ export const HomePage: React.FC = () => {
     <div className="space-y-10 pb-16 animate-in fade-in duration-300">
       {/* Live Breaking News Ticker Bar */}
       {breakingAlerts.length > 0 && (
-        <div className="flex items-center gap-3 bg-gradient-to-r from-rose-950/90 via-[#111827] to-rose-950/90 p-3 px-4 rounded-2xl border border-rose-500/30 shadow-xl backdrop-blur-md">
-          <span className="px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider bg-rose-600 text-white flex items-center gap-1.5 shrink-0 shadow-md shadow-rose-950">
-            <Radio className="w-3.5 h-3.5 animate-ping" /> BREAKING NEWS
+        <div className="flex items-center gap-3 bg-gradient-to-r from-rose-950/90 via-[#111827] to-rose-950/90 p-3 px-4 rounded-2xl border border-rose-500/30 shadow-xl backdrop-blur-md min-w-0">
+          <span className="px-2.5 sm:px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider bg-rose-600 text-white flex items-center gap-1.5 shrink-0 shadow-md shadow-rose-950">
+            <Radio className="w-3.5 h-3.5 animate-ping shrink-0" /> BREAKING
           </span>
-          <div className="overflow-hidden whitespace-nowrap text-xs text-rose-100 font-bold truncate">
+          <div className="overflow-hidden whitespace-nowrap text-xs text-rose-100 font-bold truncate min-w-0">
             {breakingAlerts[0].title} — <span className="text-slate-400 font-normal">{breakingAlerts[0].summary}</span>
           </div>
         </div>
@@ -127,24 +127,24 @@ export const HomePage: React.FC = () => {
       <AdBanner placementCode="HOME_TOP" />
 
       {/* Top Weather & Quick Regional Telemetry Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-gradient-to-r from-[#090d19] via-[#0d1326] to-[#090d19] p-3.5 px-6 rounded-2xl border border-indigo-500/15 shadow-xl">
-        <div className="flex flex-wrap items-center gap-3 text-xs text-slate-300 font-medium">
-          <div className="flex items-center gap-1.5 text-amber-400 font-bold bg-amber-500/10 px-3 py-1 rounded-xl border border-amber-500/20">
-            <CloudSun className="w-4 h-4 text-amber-400" /> 28°C Sunny
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-gradient-to-r from-[#090d19] via-[#0d1326] to-[#090d19] p-3.5 px-4 sm:px-6 rounded-2xl border border-indigo-500/15 shadow-xl">
+        <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 text-xs text-slate-300 font-medium">
+          <div className="flex items-center gap-1.5 text-amber-400 font-bold bg-amber-500/10 px-2.5 py-1 rounded-xl border border-amber-500/20 text-[11px] sm:text-xs">
+            <CloudSun className="w-4 h-4 text-amber-400 shrink-0" /> 28°C Sunny
           </div>
           <span className="hidden md:inline text-slate-400">Palamu Division Regional News Hub</span>
-          <span className="text-slate-600">•</span>
-          <span className="text-emerald-400 font-semibold flex items-center gap-1.5 font-mono">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Live Telemetry Engine Connected
+          <span className="text-slate-600 hidden xs:inline">•</span>
+          <span className="text-emerald-400 font-semibold flex items-center gap-1.5 font-mono text-[11px]">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" /> Live Engine Connected
           </span>
         </div>
 
         <div className="flex items-center gap-2 text-xs">
-          <span className="text-slate-400 font-semibold">Hot Topics:</span>
-          <span className="px-2.5 py-0.5 rounded-full bg-rose-500/10 text-rose-300 border border-rose-500/20 text-[11px] font-bold">
+          <span className="text-slate-400 font-semibold text-[11px]">Hot Topics:</span>
+          <span className="px-2.5 py-0.5 rounded-full bg-rose-500/10 text-rose-300 border border-rose-500/20 text-[10px] sm:text-[11px] font-bold">
             #PalamuNH75
           </span>
-          <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 text-[11px] font-bold">
+          <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 text-[10px] sm:text-[11px] font-bold">
             #GarhwaAgri
           </span>
         </div>
@@ -159,7 +159,7 @@ export const HomePage: React.FC = () => {
             <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl" />
           </div>
 
-          <div className="relative z-10 p-6 sm:p-10 md:p-14 max-w-4xl space-y-5">
+          <div className="relative z-10 p-5 sm:p-10 md:p-14 max-w-4xl space-y-4 sm:space-y-5">
             {isLoadingFeatured ? (
               <div className="space-y-4">
                 <Skeleton className="h-6 w-48" />
@@ -168,19 +168,19 @@ export const HomePage: React.FC = () => {
               </div>
             ) : (
               <>
-                <div className="flex flex-wrap items-center gap-2.5">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
                   <Badge variant="emerald" pulse>
                     <ShieldCheck className="w-3.5 h-3.5 inline mr-1" /> Super Admin Verified
                   </Badge>
-                  <span className="px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-rose-600 text-white shadow-md shadow-rose-950">
+                  <span className="px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-wider bg-rose-600 text-white shadow-md shadow-rose-950">
                     {featuredStory.category?.name || 'FEATURED REPORT'}
                   </span>
-                  <span className="text-xs text-slate-300 font-semibold flex items-center gap-1 bg-slate-900/90 px-3 py-1 rounded-xl border border-slate-800">
-                    <MapPin className="w-3.5 h-3.5 text-rose-400" /> {featuredStory.location?.name || 'Jharkhand'}
+                  <span className="text-[11px] sm:text-xs text-slate-300 font-semibold flex items-center gap-1 bg-slate-900/90 px-2.5 py-0.5 sm:py-1 rounded-xl border border-slate-800">
+                    <MapPin className="w-3.5 h-3.5 text-rose-400 shrink-0" /> {featuredStory.location?.name || 'Jharkhand'}
                   </span>
                 </div>
 
-                <h2 className="text-2xl sm:text-4xl md:text-5xl font-black font-serif text-white tracking-tight leading-tight group-hover:text-rose-100 transition-colors">
+                <h2 className="text-xl sm:text-3xl md:text-5xl font-black font-serif text-white tracking-tight leading-tight group-hover:text-rose-100 transition-colors">
                   {featuredStory.title}
                 </h2>
 

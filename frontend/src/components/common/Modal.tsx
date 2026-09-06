@@ -40,7 +40,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
         role="dialog"
         aria-modal="true"
         className={cn(
-          'relative w-full max-w-lg glass-panel rounded-2xl border border-slate-800 p-6 shadow-2xl z-10 space-y-4 animate-in fade-in zoom-in-95 duration-150',
+          'relative w-full max-w-[95vw] sm:max-w-lg max-h-[90vh] overflow-y-auto glass-panel rounded-2xl border border-slate-800 p-4 sm:p-6 shadow-2xl z-10 space-y-4 animate-in fade-in zoom-in-95 duration-150 custom-scrollbar',
           className
         )}
       >

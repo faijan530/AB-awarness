@@ -7,10 +7,10 @@ import { ToastContainer } from '@/components/common/ToastContainer';
 
 export const UserLayout: React.FC = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100 font-sans selection:bg-rose-600 selection:text-white relative">
+    <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100 font-sans selection:bg-rose-600 selection:text-white relative w-full overflow-x-hidden">
       <UserHeader />
       <UserSidebar />
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6">
+      <main className="flex-1 max-w-7xl w-full min-w-0 mx-auto px-3 sm:px-6 py-6 overflow-x-hidden">
         <Outlet />
       </main>
       <UserFooter />

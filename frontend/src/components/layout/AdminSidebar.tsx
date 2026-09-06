@@ -86,6 +86,11 @@ export const AdminSidebar: React.FC = () => {
               <NavLink
                 key={item.path}
                 to={item.path}
+                onClick={() => {
+                  if (window.innerWidth < 768 && isOpen) {
+                    toggleAdminSidebar();
+                  }
+                }}
                 className={({ isActive }) =>
                   cn(
                     'flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 group',

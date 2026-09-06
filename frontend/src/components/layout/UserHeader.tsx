@@ -41,16 +41,16 @@ export const UserHeader: React.FC = () => {
   return (
     <header className="sticky top-0 z-40 bg-[#070a14]/95 backdrop-blur-xl border-b border-slate-800/80 shadow-2xl">
       {/* Top Live Ticker Strip */}
-      <div className="bg-gradient-to-r from-slate-950 via-rose-950/20 to-slate-950 text-xs py-1.5 px-4 sm:px-6 flex items-center justify-between border-b border-slate-800/50">
-        <div className="flex items-center gap-2.5">
-          <span className="bg-gradient-to-r from-rose-600 to-amber-500 text-white text-[10px] uppercase font-black px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1">
+      <div className="bg-gradient-to-r from-slate-950 via-rose-950/20 to-slate-950 text-xs py-1.5 px-3 sm:px-6 flex items-center justify-between border-b border-slate-800/50 w-full overflow-hidden">
+        <div className="flex items-center gap-2 sm:gap-2.5 min-w-0 overflow-hidden">
+          <span className="bg-gradient-to-r from-rose-600 to-amber-500 text-white text-[10px] uppercase font-black px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1 shrink-0">
             <Sparkles className="w-2.5 h-2.5" /> Live Desk
           </span>
-          <span className="text-slate-300 font-medium text-[11px] truncate max-w-sm sm:max-w-xl">
+          <span className="text-slate-300 font-medium text-[11px] truncate max-w-[150px] min-[380px]:max-w-xs sm:max-w-xl">
             Jharkhand Regional Coverage — Palamu, Garhwa & Latehar Digital News Network
           </span>
         </div>
-        <div className="hidden sm:flex items-center gap-4 text-slate-400 font-mono text-[11px]">
+        <div className="hidden sm:flex items-center gap-4 text-slate-400 font-mono text-[11px] shrink-0">
           <span className="flex items-center gap-1.5 text-slate-300 font-semibold">
             <MapPin className="w-3 h-3 text-rose-400" /> Jharkhand, India
           </span>
@@ -59,9 +59,9 @@ export const UserHeader: React.FC = () => {
       </div>
 
       {/* Main Header Navbar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 flex items-center justify-between gap-4">
+      <div className="max-w-7xl mx-auto px-2.5 sm:px-6 py-2 flex items-center justify-between gap-1.5 sm:gap-4 w-full overflow-hidden">
         {/* Left: Sidebar Toggle Menu + Brand Logo */}
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0 min-w-0">
           {/* Menu Drawer Toggle Button */}
           <button
             onClick={toggleUserSidebar}
@@ -74,17 +74,17 @@ export const UserHeader: React.FC = () => {
           </button>
 
           {/* Brand Logo Lockup */}
-          <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-rose-500 via-rose-600 to-amber-500 p-0.5 shadow-md group-hover:scale-105 transition-transform duration-300">
+          <Link to="/" className="flex items-center gap-2 sm:gap-3 group">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-rose-500 via-rose-600 to-amber-500 p-0.5 shadow-md group-hover:scale-105 transition-transform duration-300 shrink-0">
               <div className="w-full h-full bg-[#070a12] rounded-[10px] flex items-center justify-center">
                 <Newspaper className="w-4 h-4 text-rose-400 group-hover:text-rose-300 transition-colors" />
               </div>
             </div>
-            <div className="hidden min-[380px]:block">
-              <h1 className="font-black text-base sm:text-lg tracking-tight text-white leading-tight">
+            <div>
+              <h1 className="font-black text-xs sm:text-base md:text-lg tracking-tight text-white leading-tight">
                 Abhishek Bhardwaj <span className="text-rose-500">Media</span>
               </h1>
-              <p className="text-[9px] uppercase tracking-widest text-emerald-400 font-bold leading-none">
+              <p className="text-[8px] sm:text-[9px] uppercase tracking-widest text-emerald-400 font-bold leading-none hidden xs:block">
                 Digital News & Verification
               </p>
             </div>
@@ -162,18 +162,18 @@ export const UserHeader: React.FC = () => {
         </nav>
 
         {/* Right: Actions & User / Reporter Desk */}
-        <div className="flex items-center gap-2 sm:gap-2.5">
+        <div className="flex items-center gap-1.5 sm:gap-2.5">
           {/* Theme Switcher */}
           <button
             onClick={toggleTheme}
             title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-            className="p-2 text-slate-400 hover:text-amber-300 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-800 transition-all shadow-sm flex items-center"
+            className="p-1.5 sm:p-2 text-slate-400 hover:text-amber-300 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-800 transition-all shadow-sm flex items-center shrink-0"
             aria-label="Toggle Theme"
           >
             {theme === 'dark' ? (
-              <Sun className="w-4 h-4 text-amber-400" />
+              <Sun className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400" />
             ) : (
-              <Moon className="w-4 h-4 text-indigo-400" />
+              <Moon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-400" />
             )}
           </button>
 
@@ -181,18 +181,19 @@ export const UserHeader: React.FC = () => {
           {hasRole('SUPER_ADMIN') && (
             <Link
               to="/admin/dashboard"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-600 hover:from-indigo-500 hover:to-violet-500 text-white shadow-lg shadow-indigo-950/80 border border-indigo-400/40 transition-all hover:scale-105"
+              className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl text-xs font-black bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-600 hover:from-indigo-500 hover:to-violet-500 text-white shadow-lg shadow-indigo-950/80 border border-indigo-400/40 transition-all hover:scale-105 shrink-0"
               title="Open Super Admin Desk"
             >
               <Shield className="w-3.5 h-3.5 text-indigo-200" />
-              <span>Super Admin Panel ➔</span>
+              <span className="hidden md:inline">Super Admin Panel ➔</span>
+              <span className="md:hidden text-[10px]">Admin</span>
             </Link>
           )}
 
           {/* Reporter Desk Action Button */}
           <Link
             to="/reporter/dashboard"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-gradient-to-r from-rose-600/20 via-slate-900 to-amber-600/20 hover:from-rose-600/30 hover:to-amber-600/30 border border-rose-500/40 text-rose-300 hover:text-white transition-all shadow-sm group"
+            className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl text-xs font-black bg-gradient-to-r from-rose-600/20 via-slate-900 to-amber-600/20 hover:from-rose-600/30 hover:to-amber-600/30 border border-rose-500/40 text-rose-300 hover:text-white transition-all shadow-sm group shrink-0"
             title="Open Reporter Workspace Desk"
           >
             <PenTool className="w-3.5 h-3.5 text-rose-400 group-hover:rotate-12 transition-transform" />
@@ -201,18 +202,18 @@ export const UserHeader: React.FC = () => {
 
           {/* User Account / Sign In */}
           {isAuthenticated && user ? (
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1 sm:gap-1.5">
               <NotificationBell />
 
               <Link
                 to="/profile"
-                className="flex items-center gap-2 bg-slate-900/90 border border-slate-800 hover:border-rose-500/30 p-1.5 pr-2.5 rounded-xl text-xs font-bold text-slate-200 transition-all shadow-sm"
+                className="flex items-center gap-1.5 sm:gap-2 bg-slate-900/90 border border-slate-800 hover:border-rose-500/30 p-1 sm:p-1.5 sm:pr-2.5 rounded-xl text-xs font-bold text-slate-200 transition-all shadow-sm"
                 title="View Citizen Profile"
               >
                 <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-rose-500 to-indigo-600 text-white flex items-center justify-center font-black text-[10px] shadow-sm">
                   {user?.fullName ? user.fullName.substring(0, 2).toUpperCase() : 'US'}
                 </div>
-                <span className="hidden sm:inline truncate max-w-[80px] text-xs">
+                <span className="hidden md:inline truncate max-w-[80px] text-xs">
                   {user?.fullName.split(' ')[0]}
                 </span>
               </Link>
@@ -223,15 +224,15 @@ export const UserHeader: React.FC = () => {
                 className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl border border-slate-800 transition-colors"
                 aria-label="Log Out"
               >
-                <LogOut className="w-4 h-4" />
+                <LogOut className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </button>
             </div>
           ) : (
             <Link
               to="/login"
-              className="px-3.5 py-1.5 rounded-xl text-xs font-black bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white transition-all shadow-md flex items-center gap-1.5"
+              className="px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-xl text-xs font-black bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white transition-all shadow-md flex items-center gap-1 shrink-0"
             >
-              <LogIn className="w-3.5 h-3.5" /> <span>Log In</span>
+              <LogIn className="w-3.5 h-3.5" /> <span className="hidden xs:inline">Log In</span>
             </Link>
           )}
         </div>
