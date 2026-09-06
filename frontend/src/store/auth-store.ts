@@ -19,6 +19,7 @@ interface AuthState {
   logoutAll: () => Promise<void>;
   clearError: () => void;
   setSessionExpired: () => void;
+  dismissSessionExpired: () => void;
 
   // Helper Authorization Queries
   hasRole: (role: UserRole) => boolean;
@@ -64,10 +65,12 @@ export const useAuthStore = create<AuthState>((set, get) => {
         });
       } catch (err: any) {
         localStorage.removeItem('ab_access_token');
+        const isAuthPath = typeof window !== 'undefined' && 
+          (window.location.pathname === '/login' || window.location.pathname === '/register');
         set({
           user: null,
           isAuthenticated: false,
-          sessionStatus: 'EXPIRED',
+          sessionStatus: isAuthPath ? 'UNAUTHENTICATED' : 'EXPIRED',
           isInitializing: false,
         });
       }
@@ -147,6 +150,13 @@ export const useAuthStore = create<AuthState>((set, get) => {
         user: null,
         isAuthenticated: false,
         sessionStatus: 'EXPIRED',
+      });
+    },
+
+    dismissSessionExpired: () => {
+      set({
+        sessionStatus: 'UNAUTHENTICATED',
+        error: null,
       });
     },
 

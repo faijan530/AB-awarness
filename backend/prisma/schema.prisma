@@ -146,23 +146,34 @@ enum NotificationType {
   NEWS_APPROVED
   NEWS_REJECTED
   COMMENT_REPLY
+  COMMENT_REACTION
+  NEWS_UPDATE
+  BREAKING_NEWS
+  REPORT_UPDATE
+  MODERATION_ACTION
+  SECURITY
   VERIFICATION_UPDATE
 }
 
-enum AdStatus {
+enum AdvertiserStatus {
+  ACTIVE
+  INACTIVE
+  BLOCKED
+}
+
+enum CampaignStatus {
   DRAFT
+  PENDING
   ACTIVE
   PAUSED
-  EXPIRED
+  COMPLETED
   CANCELLED
 }
 
-enum AdPlacementType {
-  HOMEPAGE_HERO
-  SIDEBAR
-  IN_ARTICLE
-  BOTTOM_STICKY
-  CATEGORY_HEADER
+enum AdCreativeType {
+  IMAGE
+  VIDEO
+  TEXT
 }
 
 // ==========================================
@@ -201,10 +212,12 @@ model User {
   bookmarks            Bookmark[]
   reportsSubmitted     ContentReport[]      @relation("Reporter")
   reportsReviewed      ContentReport[]      @relation("ReportReviewer")
-  notifications        Notification[]
-  auditLogs            AuditLog[]
-  systemSettingsUpdate SystemSetting[]
-  newsViews            NewsViewEvent[]
+  notifications           Notification[]
+  notificationPreferences NotificationPreference?
+  userDevices             UserDevice[]
+  auditLogs               AuditLog[]
+  systemSettingsUpdate    SystemSetting[]
+  newsViews               NewsViewEvent[]
 
   @@index([email])
   @@index([phone])
@@ -411,6 +424,7 @@ model News {
   seoMetadata   SeoMetadata?
   viewEvents    NewsViewEvent[]
   statistics    NewsStatistics?
+  slugHistory   NewsSlugHistory[]
 
   @@index([slug])
   @@index([status])
@@ -514,10 +528,9 @@ model Media {
   updatedAt       DateTime  @updatedAt @map("updated_at")
   deletedAt       DateTime? @map("deleted_at")
 
-  uploader       User            @relation("UploadedMedia", fields: [uploadedBy], references: [id], onDelete: Restrict)
-  featuredInNews News[]          @relation("FeaturedMedia")
+  uploader       User        @relation("UploadedMedia", fields: [uploadedBy], references: [id], onDelete: Restrict)
+  featuredInNews News[]      @relation("FeaturedMedia")
   newsMedia      NewsMedia[]
-  advertisements Advertisement[]
 
   @@map("media")
 }
@@ -671,80 +684,186 @@ model ContentReport {
 }
 
 // ==========================================
-// 8. NOTIFICATIONS & ADVERTISEMENTS
+// 8. NOTIFICATIONS DOMAIN (MODULE 10)
 // ==========================================
 
 model Notification {
-  id        String           @id @default(uuid()) @db.Uuid
-  userId    String           @map("user_id") @db.Uuid
-  type      NotificationType
-  title     String           @db.VarChar(255)
-  message   String           @db.Text
-  data      Json?
-  isRead    Boolean          @default(false) @map("is_read")
-  readAt    DateTime?        @map("read_at")
-  createdAt DateTime         @default(now()) @map("created_at")
+  id         String           @id @default(uuid()) @db.Uuid
+  userId     String           @map("user_id") @db.Uuid
+  type       NotificationType
+  title      String           @db.VarChar(200)
+  message    String           @db.Text
+  entityType String?          @map("entity_type") @db.VarChar(100)
+  entityId   String?          @map("entity_id") @db.Uuid
+  data       Json?
+  isRead     Boolean          @default(false) @map("is_read")
+  readAt     DateTime?        @map("read_at")
+  createdAt  DateTime         @default(now()) @map("created_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([userId, isRead, createdAt])
+  @@index([userId, isRead])
+  @@index([userId, createdAt])
   @@map("notifications")
 }
 
-model Advertisement {
-  id             String    @id @default(uuid()) @db.Uuid
-  name           String    @db.VarChar(200)
-  advertiserName String    @map("advertiser_name") @db.VarChar(200)
-  type           String    @db.VarChar(50)
-  mediaId        String?   @map("media_id") @db.Uuid
-  targetUrl      String?   @map("target_url") @db.Text
-  startAt        DateTime  @map("start_at")
-  endAt          DateTime  @map("end_at")
-  status         AdStatus  @default(DRAFT)
-  priority       Int       @default(0)
-  createdAt      DateTime  @default(now()) @map("created_at")
-  updatedAt      DateTime  @updatedAt @map("updated_at")
+model NotificationPreference {
+  id                 String   @id @default(uuid()) @db.Uuid
+  userId             String   @unique @map("user_id") @db.Uuid
+  breakingNews       Boolean  @default(true) @map("breaking_news")
+  commentReplies     Boolean  @default(true) @map("comment_replies")
+  commentReactions   Boolean  @default(true) @map("comment_reactions")
+  newsUpdates        Boolean  @default(true) @map("news_updates")
+  emailNotifications Boolean  @default(true) @map("email_notifications")
+  pushNotifications  Boolean  @default(true) @map("push_notifications")
+  updatedAt          DateTime @updatedAt @map("updated_at")
 
-  media      Media?        @relation(fields: [mediaId], references: [id], onDelete: SetNull)
-  placements AdPlacement[]
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@map("advertisements")
+  @@map("notification_preferences")
+}
+
+model UserDevice {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  deviceType String   @map("device_type") @db.VarChar(50)
+  pushToken  String   @map("push_token") @db.Text
+  lastSeenAt DateTime @default(now()) @map("last_seen_at")
+  isActive   Boolean  @default(true) @map("is_active")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, pushToken])
+  @@index([userId, isActive])
+  @@map("user_devices")
+}
+
+// ==========================================
+// 9. ADVERTISING DOMAIN (MODULE 10)
+// ==========================================
+
+model Advertiser {
+  id          String           @id @default(uuid()) @db.Uuid
+  name        String           @db.VarChar(200)
+  contactName String?          @map("contact_name") @db.VarChar(150)
+  email       String           @db.VarChar(255)
+  phone       String?          @db.VarChar(50)
+  status      AdvertiserStatus @default(ACTIVE)
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+
+  campaigns Campaign[]
+
+  @@map("advertisers")
+}
+
+model Campaign {
+  id             String         @id @default(uuid()) @db.Uuid
+  advertiserId   String         @map("advertiser_id") @db.Uuid
+  name           String         @db.VarChar(200)
+  status         CampaignStatus @default(DRAFT)
+  startAt        DateTime       @map("start_at")
+  endAt          DateTime       @map("end_at")
+  budget         Decimal?       @db.Decimal(12, 2)
+  dailyBudget    Decimal?       @map("daily_budget") @db.Decimal(12, 2)
+  targetLocation String?        @map("target_location") @db.VarChar(100)
+  targetCategory String?        @map("target_category") @db.VarChar(100)
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
+
+  advertiser Advertiser   @relation(fields: [advertiserId], references: [id], onDelete: Cascade)
+  creatives  AdCreative[]
+  metrics    AdMetric[]
+
+  @@index([status, startAt, endAt])
+  @@map("campaigns")
+}
+
+model AdCreative {
+  id             String         @id @default(uuid()) @db.Uuid
+  campaignId     String         @map("campaign_id") @db.Uuid
+  name           String         @db.VarChar(200)
+  type           AdCreativeType @default(IMAGE)
+  mediaUrl       String?        @map("media_url") @db.Text
+  headline       String         @db.VarChar(250)
+  description    String?        @db.Text
+  destinationUrl String         @map("destination_url") @db.Text
+  status         String         @default("ACTIVE") @db.VarChar(50)
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
+
+  campaign Campaign   @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  metrics  AdMetric[]
+
+  @@map("ad_creatives")
 }
 
 model AdPlacement {
-  id              String          @id @default(uuid()) @db.Uuid
-  advertisementId String          @map("advertisement_id") @db.Uuid
-  placement       AdPlacementType
-  pageType        String          @map("page_type") @db.VarChar(50)
-  isActive        Boolean         @default(true) @map("is_active")
-  createdAt       DateTime        @default(now()) @map("created_at")
-  updatedAt       DateTime        @updatedAt @map("updated_at")
-
-  advertisement Advertisement @relation(fields: [advertisementId], references: [id], onDelete: Cascade)
+  id         String   @id @default(uuid()) @db.Uuid
+  name       String   @db.VarChar(100)
+  code       String   @unique @db.VarChar(100)
+  dimensions String?  @db.VarChar(50)
+  isActive   Boolean  @default(true) @map("is_active")
+  priority   Int      @default(0)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
 
   @@map("ad_placements")
 }
 
+model AdMetric {
+  id            String   @id @default(uuid()) @db.Uuid
+  creativeId    String   @map("creative_id") @db.Uuid
+  campaignId    String   @map("campaign_id") @db.Uuid
+  placementCode String   @map("placement_code") @db.VarChar(100)
+  eventType     String   @map("event_type") @db.VarChar(50) // 'IMPRESSION' | 'CLICK'
+  ipHash        String?  @map("ip_hash") @db.VarChar(255)
+  userAgent     String?  @map("user_agent") @db.Text
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  campaign Campaign   @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  creative AdCreative @relation(fields: [creativeId], references: [id], onDelete: Cascade)
+
+  @@index([creativeId, eventType])
+  @@index([campaignId, eventType])
+  @@index([createdAt])
+  @@map("ad_metrics")
+}
+
 // ==========================================
-// 9. SEO & AUDIT LOGS
+// 10. SEO DOMAIN (MODULE 10)
 // ==========================================
 
 model SeoMetadata {
-  id            String   @id @default(uuid()) @db.Uuid
-  newsId        String?  @unique @map("news_id") @db.Uuid
-  title         String   @db.VarChar(300)
-  description   String   @db.Text
-  canonicalUrl  String?  @map("canonical_url") @db.Text
-  ogTitle       String?  @map("og_title") @db.VarChar(300)
-  ogDescription String?  @map("og_description") @db.Text
-  ogImage       String?  @map("og_image") @db.Text
-  robots        String?  @db.VarChar(100)
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
+  id              String   @id @default(uuid()) @db.Uuid
+  newsId          String?  @unique @map("news_id") @db.Uuid
+  title           String   @db.VarChar(300)
+  description     String   @db.Text
+  canonicalUrl    String?  @map("canonical_url") @db.Text
+  ogTitle         String?  @map("og_title") @db.VarChar(300)
+  ogDescription   String?  @map("og_description") @db.Text
+  ogImage         String?  @map("og_image") @db.Text
+  noIndex         Boolean  @default(false) @map("no_index")
+  robots          String?  @db.VarChar(100)
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
 
   news News? @relation(fields: [newsId], references: [id], onDelete: Cascade)
 
   @@map("seo_metadata")
+}
+
+model NewsSlugHistory {
+  id        String   @id @default(uuid()) @db.Uuid
+  newsId    String   @map("news_id") @db.Uuid
+  oldSlug   String   @map("old_slug") @db.VarChar(350)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  news News @relation(fields: [newsId], references: [id], onDelete: Cascade)
+
+  @@index([oldSlug])
+  @@map("news_slug_history")
 }
 
 model AuditLog {
@@ -752,7 +871,7 @@ model AuditLog {
   actorId    String?  @map("actor_id") @db.Uuid
   action     String   @db.VarChar(100)
   entityType String   @map("entity_type") @db.VarChar(100)
-  entityId   String?  @map("entity_id") @db.Uuid
+  entityId   String?  @map("entity_id") @db.VarChar(255)
   oldValues  Json?    @map("old_values")
   newValues  Json?    @map("new_values")
   ipAddress  String?  @map("ip_address") @db.VarChar(45)
@@ -817,3 +936,92 @@ model NewsStatistics {
 
   @@map("news_statistics")
 }
+
+// ==========================================
+// 11. MODULE 11: ANALYTICS, AUDIT & SYSTEM MANAGEMENT
+// ==========================================
+
+model AnalyticsEvent {
+  id          String   @id @default(uuid()) @db.Uuid
+  eventType   String   @map("event_type") @db.VarChar(100)
+  userId      String?  @map("user_id") @db.Uuid
+  anonymousId String?  @map("anonymous_id") @db.VarChar(100)
+  entityType  String?  @map("entity_type") @db.VarChar(100)
+  entityId    String?  @map("entity_id") @db.VarChar(255)
+  metadata    Json?
+  ipHash      String?  @map("ip_hash") @db.VarChar(255)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([eventType, createdAt])
+  @@index([entityType, entityId])
+  @@index([userId, createdAt])
+  @@map("analytics_events")
+}
+
+model FeatureFlag {
+  id                String   @id @default(uuid()) @db.Uuid
+  key               String   @unique @db.VarChar(100)
+  enabled           Boolean  @default(false)
+  description       String?  @db.Text
+  rolloutPercentage Int      @default(100) @map("rollout_percentage")
+  updatedBy         String?  @map("updated_by") @db.Uuid
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  @@map("feature_flags")
+}
+
+model DailyNewsMetrics {
+  id          String   @id @default(uuid()) @db.Uuid
+  date        DateTime @db.Date
+  newsId      String   @map("news_id") @db.Uuid
+  views       BigInt   @default(0)
+  uniqueViews BigInt   @default(0) @map("unique_views")
+  reactions   Int      @default(0)
+  comments    Int      @default(0)
+  bookmarks   Int      @default(0)
+  shares      Int      @default(0)
+  reports     Int      @default(0)
+
+  @@unique([date, newsId])
+  @@index([newsId, date])
+  @@map("daily_news_metrics")
+}
+
+model DailyUserMetrics {
+  id            String   @id @default(uuid()) @db.Uuid
+  date          DateTime @unique @db.Date
+  newUsers      Int      @default(0) @map("new_users")
+  activeUsers   Int      @default(0) @map("active_users")
+  verifiedUsers Int      @default(0) @map("verified_users")
+  logins        Int      @default(0)
+
+  @@map("daily_user_metrics")
+}
+
+model DailyCategoryMetrics {
+  id           String   @id @default(uuid()) @db.Uuid
+  date         DateTime @db.Date
+  categoryId   String   @map("category_id") @db.Uuid
+  articleCount Int      @default(0) @map("article_count")
+  views        BigInt   @default(0)
+  engagement   Int      @default(0)
+
+  @@unique([date, categoryId])
+  @@index([categoryId, date])
+  @@map("daily_category_metrics")
+}
+
+model DailyLocationMetrics {
+  id           String   @id @default(uuid()) @db.Uuid
+  date         DateTime @db.Date
+  locationId   String   @map("location_id") @db.Uuid
+  articleCount Int      @default(0) @map("article_count")
+  views        BigInt   @default(0)
+  engagement   Int      @default(0)
+
+  @@unique([date, locationId])
+  @@index([locationId, date])
+  @@map("daily_location_metrics")
+}
+

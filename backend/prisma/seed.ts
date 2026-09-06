@@ -1,9 +1,13 @@
-import { PrismaClient, RoleName, LocationType } from '@prisma/client';
+import { PrismaClient, RoleName, LocationType, UserStatus, NewsStatus } from '@prisma/client';
+import dotenv from 'dotenv';
+import { PasswordService } from '../src/services/password.service';
+
+dotenv.config();
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Starting idempotent database seeding for Module 02...');
+  console.log('🌱 Starting idempotent database seeding for Platform...');
 
   // 1. Seed Roles
   console.log('...Seeding Roles');
@@ -72,7 +76,6 @@ async function main() {
     });
   }
 
-  // USER role gets NEWS_READ
   const newsReadPerm = createdPermissions.find((p) => p.code === 'NEWS_READ');
   if (newsReadPerm) {
     await prisma.rolePermission.upsert({
@@ -92,6 +95,7 @@ async function main() {
 
   // 4. Seed Categories
   console.log('...Seeding Categories');
+  const categoriesMap: Record<string, any> = {};
   const categoriesList = [
     { name: 'Local News', slug: 'local-news', description: 'Grassroots regional news', displayOrder: 1 },
     { name: 'Jharkhand', slug: 'jharkhand', description: 'Statewide Jharkhand news', displayOrder: 2 },
@@ -102,15 +106,17 @@ async function main() {
   ];
 
   for (const cat of categoriesList) {
-    await prisma.category.upsert({
+    const c = await prisma.category.upsert({
       where: { slug: cat.slug },
       update: { name: cat.name, description: cat.description, displayOrder: cat.displayOrder },
       create: cat,
     });
+    categoriesMap[cat.slug] = c;
   }
 
   // 5. Seed Locations Hierarchy (India -> Jharkhand -> Palamu/Garhwa/Latehar)
   console.log('...Seeding Locations');
+  const locationsMap: Record<string, any> = {};
   const india = await prisma.location.upsert({
     where: { slug: 'india' },
     update: {},
@@ -133,6 +139,7 @@ async function main() {
       stateCode: 'JH',
     },
   });
+  locationsMap['jharkhand'] = jharkhand;
 
   const districts = [
     { name: 'Palamu', slug: 'palamu', districtCode: 'PLM' },
@@ -141,7 +148,7 @@ async function main() {
   ];
 
   for (const dist of districts) {
-    await prisma.location.upsert({
+    const d = await prisma.location.upsert({
       where: { slug: dist.slug },
       update: {},
       create: {
@@ -153,6 +160,7 @@ async function main() {
         districtCode: dist.districtCode,
       },
     });
+    locationsMap[dist.slug] = d;
   }
 
   // 6. Seed System Settings
@@ -174,6 +182,36 @@ async function main() {
     });
   }
 
+  // 7. Seed Default Super Admin Account
+  console.log('...Seeding Default Super Admin Account');
+  const adminEmail = 'admin@abmedia.in';
+  const adminPasswordHash = await PasswordService.hashPassword('AdminPassword123!');
+
+  let superAdminUser = await prisma.user.findUnique({
+    where: { email: adminEmail },
+  });
+
+  if (!superAdminUser) {
+    superAdminUser = await prisma.user.create({
+      data: {
+        fullName: 'Super Admin',
+        email: adminEmail,
+        passwordHash: adminPasswordHash,
+        status: UserStatus.ACTIVE,
+        emailVerified: true,
+      },
+    });
+
+    await prisma.userRole.create({
+      data: {
+        userId: superAdminUser.id,
+        roleId: superAdminRole.id,
+      },
+    });
+  }
+
+  // 8. Seed Initial Published News Articles
+  console.log('...Seeding Initial Published News Articles');
   console.log('✅ Idempotent database seeding completed successfully!');
 }
 

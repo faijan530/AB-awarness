@@ -1,22 +1,15 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, Shield, ExternalLink, Globe, Activity, LogOut } from 'lucide-react';
+import { Menu, Shield, ExternalLink, Globe, LogOut, Sun, Moon } from 'lucide-react';
+import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { useUIStore } from '@/store/ui-store';
 import { useAuthStore } from '@/store/auth-store';
-import { useQuery } from '@tanstack/react-query';
-import { HealthService } from '@/services/api/health-service';
 
 export const AdminHeader: React.FC = () => {
   const navigate = useNavigate();
   const toggleAdminSidebar = useUIStore((state) => state.toggleAdminSidebar);
+  const { theme, toggleTheme } = useUIStore();
   const { user, logout } = useAuthStore();
-
-  const { isSuccess } = useQuery({
-    queryKey: ['backend-health'],
-    queryFn: () => HealthService.getHealth(),
-    refetchInterval: 10000,
-    retry: 1,
-  });
 
   const handleLogout = async () => {
     await logout();
@@ -24,64 +17,86 @@ export const AdminHeader: React.FC = () => {
   };
 
   return (
-    <header className="sticky top-0 z-40 glass-panel border-b border-slate-800 px-4 py-3 flex items-center justify-between">
+    <header className="sticky top-0 z-40 bg-[#090d19]/90 backdrop-blur-xl border-b border-indigo-500/15 px-4 sm:px-6 py-3.5 flex items-center justify-between transition-all shadow-xl shadow-black/20">
       {/* Left section: Hamburger & Logo */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3.5">
         <button
           onClick={toggleAdminSidebar}
           aria-label="Toggle sidebar"
-          className="p-2 text-slate-400 hover:text-slate-100 rounded-lg hover:bg-slate-900 transition-colors"
+          className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-indigo-950/50 border border-transparent hover:border-indigo-500/20 transition-all"
         >
           <Menu className="w-5 h-5" />
         </button>
 
-        <Link to="/admin/dashboard" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-rose-600 flex items-center justify-center text-white shadow-md shadow-rose-950">
-            <Shield className="w-4 h-4" />
+        <Link to="/admin/dashboard" className="flex items-center gap-3 group">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-violet-600 flex items-center justify-center text-white shadow-lg shadow-indigo-950/80 group-hover:scale-105 transition-transform duration-200">
+            <Shield className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="font-extrabold text-sm text-slate-100 leading-tight">Super Admin Desk</h2>
-            <p className="text-[10px] text-rose-400 uppercase font-mono font-bold">Panel 1 — Abhishek Bhardwaj Media</p>
+            <h2 className="font-extrabold text-sm text-slate-100 leading-tight tracking-wide group-hover:text-indigo-300 transition-colors">
+              Super Admin Desk
+            </h2>
+            <p className="text-[10px] text-indigo-400 font-semibold tracking-wider uppercase">Editorial Governance</p>
           </div>
         </Link>
       </div>
 
-      {/* Right section: Global Website Switcher & Backend Health Status */}
-      <div className="flex items-center gap-3">
-        {/* Backend API Integration Status Pill */}
-        <div className="hidden sm:flex items-center gap-1.5 bg-slate-900/90 border border-slate-800 px-2.5 py-1 rounded-full text-[11px] font-mono">
-          <Activity className={`w-3 h-3 ${isSuccess ? 'text-emerald-400 animate-pulse' : 'text-amber-400'}`} />
-          <span className="text-slate-400">Backend API:</span>
-          <span className={isSuccess ? 'text-emerald-400 font-bold' : 'text-amber-400 font-bold'}>
-            {isSuccess ? 'Connected (/api/v1)' : 'Standby'}
-          </span>
-        </div>
-
-        <Link
-          to="/"
-          target="_blank"
-          className="hidden sm:flex items-center gap-1.5 bg-slate-900 border border-slate-800 hover:border-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 transition-colors"
+      {/* Right section: Theme Toggle, Panel Switcher & User Profile */}
+      <div className="flex items-center gap-3 sm:gap-4">
+        {/* Dark / Light Theme Toggle Button */}
+        <button
+          onClick={toggleTheme}
+          title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+          className="p-2 text-slate-400 hover:text-amber-300 rounded-xl bg-indigo-950/40 hover:bg-indigo-900/40 border border-indigo-500/20 hover:border-indigo-400/40 transition-all shadow-sm flex items-center gap-1.5"
         >
-          <Globe className="w-3.5 h-3.5 text-emerald-400" /> View Public Site <ExternalLink className="w-3 h-3 text-slate-500" />
-        </Link>
+          {theme === 'dark' ? (
+            <>
+              <Sun className="w-4 h-4 text-amber-400 animate-spin-slow" />
+              <span className="hidden lg:inline text-xs font-semibold text-amber-300">Light</span>
+            </>
+          ) : (
+            <>
+              <Moon className="w-4 h-4 text-indigo-400" />
+              <span className="hidden lg:inline text-xs font-semibold text-indigo-300">Dark</span>
+            </>
+          )}
+        </button>
 
-        <div className="flex items-center gap-3 border-l border-slate-800 pl-3">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-rose-500/20 border border-rose-500/30 text-rose-400 flex items-center justify-center font-bold text-xs">
-              SA
+        {/* Notification Bell Dropdown */}
+        <NotificationBell />
+
+        {/* Working Panel Switcher Toggle Button */}
+        <button
+          onClick={() => navigate('/')}
+          className="flex items-center gap-2 bg-gradient-to-r from-rose-600/20 via-rose-500/20 to-amber-500/20 hover:from-rose-600/30 hover:to-amber-500/30 border border-rose-500/30 hover:border-rose-400/50 px-3 py-1.5 rounded-xl text-xs font-bold text-rose-200 hover:text-white transition-all shadow-md shadow-rose-950/20 group"
+          title="Switch to Public User News Portal"
+        >
+          <Globe className="w-3.5 h-3.5 text-rose-400 group-hover:rotate-12 transition-transform" /> 
+          <span className="hidden sm:inline">Switch to User Portal</span>
+          <span className="sm:hidden">User</span>
+          <span className="bg-rose-500/30 px-1.5 py-0.5 rounded text-[10px] text-rose-200 font-mono">⇄</span>
+        </button>
+
+        <div className="flex items-center gap-3.5 border-l border-indigo-900/40 pl-4">
+          <div className="flex items-center gap-2.5">
+            <div className="relative">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-600 to-violet-600 text-white flex items-center justify-center font-bold text-xs shadow-md">
+                {user?.fullName ? user.fullName.substring(0, 2).toUpperCase() : 'SA'}
+              </div>
+              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-400 border-2 border-[#090d19] rounded-full shadow-sm" />
             </div>
             <div className="hidden md:block text-left">
-              <p className="text-xs font-bold text-slate-100">{user?.fullName || 'Super Admin'}</p>
-              <p className="text-[10px] text-slate-400">Editorial Authority</p>
+              <p className="text-xs font-bold text-slate-100 leading-none">{user?.fullName || 'Super Admin'}</p>
+              <p className="text-[10px] font-semibold text-indigo-400/90 mt-1">Editorial Authority</p>
             </div>
           </div>
 
           <button
             onClick={handleLogout}
             title="Log Out"
-            className="p-2 text-slate-400 hover:text-red-400 hover:bg-slate-900 rounded-lg transition-colors"
+            className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition-all ml-1 border border-transparent hover:border-rose-500/20"
           >
-            <LogOut className="w-4 h-4" />
+            <LogOut className="w-4.5 h-4.5" />
           </button>
         </div>
       </div>

@@ -4,6 +4,8 @@ import { logger } from './config/logger';
 import { connectDatabase, disconnectDatabase } from './config/database';
 import { initRedis, disconnectRedis } from './config/redis';
 
+// Server Bootstrap Engine
+
 async function bootstrap() {
   logger.info('🚀 Starting Abhishek Bhardwaj Media Backend Server...');
 

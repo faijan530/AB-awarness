@@ -12,11 +12,11 @@ export interface HealthData {
 export class HealthService {
   public static async getHealth(): Promise<HealthData> {
     const response = await apiClient.get<HealthData>('/health');
-    return response.data;
+    return (response as any)?.data || (response as any);
   }
 
   public static async getApiIndex(): Promise<any> {
     const response = await apiClient.get<any>('/');
-    return response.data;
+    return (response as any)?.data || (response as any);
   }
 }

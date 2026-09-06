@@ -102,3 +102,6 @@ export async function authenticate(req: Request, _res: Response, next: NextFunct
     return next(new AppError('Invalid or expired access token', 401, 'UNAUTHORIZED'));
   }
 }
+
+export const authenticateToken = authenticate;
+

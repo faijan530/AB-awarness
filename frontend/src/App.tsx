@@ -6,6 +6,8 @@ import { AppRouter } from '@/app/router/AppRouter';
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes memory cache freshness for instant UI navigation
+      gcTime: 1000 * 60 * 30, // 30 minutes garbage collection
       refetchOnWindowFocus: false,
       retry: 1,
     },

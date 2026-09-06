@@ -90,4 +90,9 @@ export class AuthService {
     const response = await apiClient.get<UserProfile>('/auth/me');
     return response.data;
   }
+
+  public static async updateProfile(payload: { fullName?: string; bio?: string; avatarUrl?: string }): Promise<UserProfile> {
+    const response = await apiClient.patch<UserProfile>('/users/me', payload);
+    return response.data;
+  }
 }

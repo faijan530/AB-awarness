@@ -21,10 +21,10 @@ export const UserFooter: React.FC = () => {
         <div>
           <h4 className="font-bold text-slate-200 text-sm mb-3">Geographic Coverage</h4>
           <ul className="text-xs space-y-2 text-slate-400">
-            <li><Link to="/news/palamu" className="hover:text-emerald-400 transition-colors">Palamu District</Link></li>
-            <li><Link to="/news/garhwa" className="hover:text-emerald-400 transition-colors">Garhwa District</Link></li>
-            <li><Link to="/news/latehar" className="hover:text-emerald-400 transition-colors">Latehar District</Link></li>
-            <li><Link to="/news/jharkhand" className="hover:text-emerald-400 transition-colors">All Districts of Jharkhand</Link></li>
+            <li><Link to="/location/palamu" className="hover:text-emerald-400 transition-colors">Palamu District</Link></li>
+            <li><Link to="/location/garhwa" className="hover:text-emerald-400 transition-colors">Garhwa District</Link></li>
+            <li><Link to="/location/latehar" className="hover:text-emerald-400 transition-colors">Latehar District</Link></li>
+            <li><Link to="/location/jharkhand" className="hover:text-emerald-400 transition-colors">All Districts of Jharkhand</Link></li>
           </ul>
         </div>
 
@@ -43,9 +43,7 @@ export const UserFooter: React.FC = () => {
         <div>
           <h4 className="font-bold text-slate-200 text-sm mb-3">Quick Navigation</h4>
           <ul className="text-xs space-y-2">
-            <li><Link to="/admin/dashboard" className="text-rose-400 font-semibold hover:underline">Super Admin Control Panel</Link></li>
             <li><Link to="/profile" className="text-emerald-400 font-semibold hover:underline">Citizen Reporter Profile</Link></li>
-            <li className="pt-2 text-[11px] text-slate-500 font-mono">Backend API Base: <code className="text-slate-400">/api/v1</code></li>
           </ul>
         </div>
       </div>

@@ -4,61 +4,126 @@
 
 @layer base {
   body {
-    @apply bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-rose-500 selection:text-white font-sans;
+    @apply bg-[#070a12] text-slate-100 min-h-screen flex flex-col antialiased selection:bg-rose-500 selection:text-white font-sans transition-colors duration-300;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
     background-image: 
-      radial-gradient(at 0% 0%, rgba(225, 29, 72, 0.08) 0px, transparent 50%),
-      radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.08) 0px, transparent 50%),
-      radial-gradient(at 50% 100%, rgba(15, 23, 42, 0.9) 0px, transparent 50%);
+      radial-gradient(at 15% 10%, rgba(99, 102, 241, 0.07) 0px, transparent 45%),
+      radial-gradient(at 85% 20%, rgba(225, 29, 72, 0.06) 0px, transparent 45%),
+      radial-gradient(at 50% 90%, rgba(16, 185, 129, 0.05) 0px, transparent 40%);
     background-attachment: fixed;
   }
 
-  /* Accessible glowing focus indicators */
+  html.light body {
+    @apply bg-slate-50 text-slate-900 selection:bg-rose-600 selection:text-white;
+    background-image: 
+      radial-gradient(at 15% 10%, rgba(99, 102, 241, 0.08) 0px, transparent 45%),
+      radial-gradient(at 85% 20%, rgba(225, 29, 72, 0.06) 0px, transparent 45%),
+      radial-gradient(at 50% 90%, rgba(15, 23, 42, 0.03) 0px, transparent 40%);
+  }
+
   :focus-visible {
-    @apply outline-none ring-2 ring-rose-500 ring-offset-2 ring-offset-slate-950;
+    @apply outline-none ring-2 ring-indigo-500 ring-offset-2 ring-offset-slate-950;
   }
 }
 
-/* Custom Premium UI Utilities */
+/* Light Theme Overrides */
+html.light .glass-panel {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  color: #0f172a;
+}
+
+html.light .glass-card-admin {
+  background: #ffffff;
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  color: #0f172a;
+}
+
+html.light .glass-card-user {
+  background: #ffffff;
+  border: 1px solid rgba(244, 63, 94, 0.15);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  color: #0f172a;
+}
+
+html.light .text-gradient-indigo {
+  @apply bg-gradient-to-r from-slate-900 via-indigo-900 to-indigo-700 bg-clip-text text-transparent;
+}
+
+html.light .text-gradient-rose {
+  @apply bg-gradient-to-r from-slate-900 via-rose-900 to-rose-700 bg-clip-text text-transparent;
+}
+
+html.light ::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+html.light ::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+}
+
+/* Dark Theme Default Panels */
 .glass-panel {
-  background: rgba(15, 23, 42, 0.65);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: rgba(13, 18, 30, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.glass-panel-hover {
-  @apply transition-all duration-300 hover:border-slate-700 hover:shadow-xl hover:shadow-rose-950/20 hover:-translate-y-0.5;
+.glass-card-admin {
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.8) 0%, rgba(13, 18, 30, 0.6) 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(99, 102, 241, 0.12);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.glass-card-user {
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.75) 0%, rgba(10, 14, 26, 0.6) 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(244, 63, 94, 0.12);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+/* Gradient Text Styles */
+.text-gradient-indigo {
+  @apply bg-gradient-to-r from-white via-indigo-100 to-indigo-400 bg-clip-text text-transparent;
 }
 
 .text-gradient-rose {
-  @apply bg-gradient-to-r from-white via-slate-100 to-rose-400 bg-clip-text text-transparent;
+  @apply bg-gradient-to-r from-white via-rose-100 to-rose-400 bg-clip-text text-transparent;
 }
 
 .text-gradient-gold {
-  @apply bg-gradient-to-r from-amber-200 via-amber-400 to-amber-500 bg-clip-text text-transparent;
+  @apply bg-gradient-to-r from-amber-100 via-amber-300 to-amber-500 bg-clip-text text-transparent;
 }
 
 .text-gradient-emerald {
-  @apply bg-gradient-to-r from-emerald-200 via-emerald-400 to-teal-400 bg-clip-text text-transparent;
+  @apply bg-gradient-to-r from-emerald-100 via-emerald-300 to-teal-400 bg-clip-text text-transparent;
+}
+
+/* Glow Borders */
+.border-glow-indigo {
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  box-shadow: 0 0 25px -5px rgba(99, 102, 241, 0.2);
 }
 
 .border-glow-rose {
-  border: 1px solid rgba(244, 63, 94, 0.3);
-  box-shadow: 0 0 20px -5px rgba(244, 63, 94, 0.25);
-}
-
-.border-glow-emerald {
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  box-shadow: 0 0 20px -5px rgba(16, 185, 129, 0.25);
+  border: 1px solid rgba(244, 63, 94, 0.35);
+  box-shadow: 0 0 25px -5px rgba(244, 63, 94, 0.2);
 }
 
 /* Custom Scrollbars */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
 }
 ::-webkit-scrollbar-track {
-  background: #020617;
+  background: #060913;
 }
 ::-webkit-scrollbar-thumb {
   background: #1e293b;
@@ -66,4 +131,17 @@
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #334155;
+}
+
+@keyframes shrink {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+.animate-shrink {
+  animation: shrink linear forwards;
 }

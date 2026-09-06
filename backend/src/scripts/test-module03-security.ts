@@ -1,4 +1,6 @@
 import assert from 'assert';
+import dotenv from 'dotenv';
+dotenv.config();
 import { prisma } from '../config/database';
 import { AuthService } from '../modules/auth/auth.service';
 import { PasswordService } from '../services/password.service';

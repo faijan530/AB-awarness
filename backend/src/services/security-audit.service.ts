@@ -15,7 +15,9 @@ export type SecurityEventType =
   | 'SESSION_REVOKED'
   | 'ROLE_CHANGED'
   | 'PERMISSION_CHANGED'
-  | 'REFRESH_TOKEN_REUSE_DETECTED';
+  | 'REFRESH_TOKEN_REUSE_DETECTED'
+  | 'USER_WARNED'
+  | 'CONTENT_MODERATED';
 
 export class SecurityAuditService {
   public static async logSecurityEvent(

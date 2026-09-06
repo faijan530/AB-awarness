@@ -1,5 +1,7 @@
 import assert from 'assert';
 import argon2 from 'argon2';
+import dotenv from 'dotenv';
+dotenv.config();
 import { prisma } from '../config/database';
 import { AuthService } from '../modules/auth/auth.service';
 import { RoleName, UserStatus } from '@prisma/client';

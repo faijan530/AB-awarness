@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation, Link } from 'react-router-dom';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useAuthStore } from '@/store/auth-store';
 import { useUIStore } from '@/store/ui-store';
 import { AuthService } from '@/services/api/auth-service';
+import { EngagementService } from '@/services/api/engagement-service';
 import { UserSession } from '@/types/common.types';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card } from '@/components/common/Card';
@@ -12,6 +14,7 @@ import { Input } from '@/components/common/Input';
 import { Modal } from '@/components/common/Modal';
 import { Skeleton } from '@/components/common/Skeleton';
 import { EmptyState } from '@/components/common/EmptyState';
+import { CreateNewsModal } from '@/features/news/components/CreateNewsModal';
 import {
   User,
   Shield,
@@ -28,6 +31,7 @@ import {
   Phone,
   Eye,
   EyeOff,
+  Award,
   Trash2,
   Info,
   Lock,
@@ -35,9 +39,13 @@ import {
   MapPin,
   Check,
   Loader2,
+  Bookmark,
+  MessageSquare,
+  Heart,
+  FileText,
 } from 'lucide-react';
 
-type TabType = 'overview' | 'security' | 'sessions' | 'verification';
+type TabType = 'overview' | 'security' | 'sessions' | 'verification' | 'bookmarks';
 
 export const ProfilePage: React.FC = () => {
   useDocumentTitle('User Profile & Account Management');
@@ -45,8 +53,54 @@ export const ProfilePage: React.FC = () => {
   const { user, logout, logoutAll } = useAuthStore();
   const addToast = useUIStore((state) => state.addToast);
   const queryClient = useQueryClient();
+  const location = useLocation();
 
   const [activeTab, setActiveTab] = useState<TabType>('overview');
+  const [isCreateNewsModalOpen, setIsCreateNewsModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (location.pathname === '/bookmarks') {
+      setActiveTab('bookmarks');
+    }
+  }, [location.pathname]);
+
+  // Fetch Bookmarks via React Query
+  const {
+    data: bookmarksData,
+    isLoading: isLoadingBookmarks,
+    refetch: refetchBookmarks,
+  } = useQuery({
+    queryKey: ['user-bookmarks'],
+    queryFn: () => EngagementService.getUserBookmarks(),
+    enabled: activeTab === 'bookmarks' || activeTab === 'overview',
+  });
+
+  // Fetch Engagement Metrics
+  const { data: engagementMetrics } = useQuery({
+    queryKey: ['user-engagement-metrics'],
+    queryFn: () => EngagementService.getUserEngagement(),
+  });
+
+  // Remove Bookmark Mutation
+  const removeBookmarkMutation = useMutation({
+    mutationFn: (newsId: string) => EngagementService.removeBookmark(newsId),
+    onSuccess: () => {
+      addToast({
+        type: 'success',
+        title: 'Bookmark Removed',
+        message: 'Story removed from your saved reading list.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['user-bookmarks'] });
+      queryClient.invalidateQueries({ queryKey: ['user-engagement-metrics'] });
+    },
+    onError: (err: any) => {
+      addToast({
+        type: 'error',
+        title: 'Action Failed',
+        message: err?.message || 'Failed to remove bookmark.',
+      });
+    },
+  });
 
   // Password Form State
   const [currentPassword, setCurrentPassword] = useState('');
@@ -322,6 +376,17 @@ export const ProfilePage: React.FC = () => {
         >
           <Shield className="w-4 h-4" /> Account Verification
         </button>
+
+        <button
+          onClick={() => setActiveTab('bookmarks')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+            activeTab === 'bookmarks'
+              ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shadow-sm'
+              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
+          }`}
+        >
+          <Bookmark className="w-4 h-4" /> Saved Bookmarks ({bookmarksData?.total || 0})
+        </button>
       </div>
 
       {/* TAB 1: OVERVIEW */}
@@ -386,35 +451,77 @@ export const ProfilePage: React.FC = () => {
             </Card>
           </div>
 
-          {/* Honest Informational Banner regarding deferred APIs */}
-          <Card variant="glass" className="border-sky-500/30 bg-sky-500/5 space-y-4">
-            <div className="flex items-start gap-3">
-              <Info className="w-5 h-5 text-sky-400 shrink-0 mt-0.5" />
-              <div className="space-y-2">
-                <h4 className="text-sm font-bold text-sky-200">Profile Management & Customization API Notice</h4>
-                <p className="text-xs text-slate-300 leading-relaxed">
-                  Profile editing (Full Name, Bio, Avatar Photo Upload), Theme Customization, Content Topic Preferences, and District Location Preferences will be enabled when the extended Profile API is deployed.
-                </p>
+          {/* Live Edit Profile Card */}
+          <Card variant="glass" className="space-y-4">
+            <h3 className="text-base font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-3">
+              <User className="w-5 h-5 text-emerald-400" /> Edit Profile Information
+            </h3>
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                try {
+                  const form = e.currentTarget;
+                  const fullName = (form.elements.namedItem('fullName') as HTMLInputElement).value;
+                  const bio = (form.elements.namedItem('bio') as HTMLInputElement).value;
+                  await AuthService.updateProfile({ fullName, bio });
+                  addToast({
+                    type: 'success',
+                    title: 'Profile Updated',
+                    message: 'Your personal information has been saved successfully.',
+                  });
+                } catch (err: any) {
+                  addToast({
+                    type: 'error',
+                    title: 'Update Failed',
+                    message: err.response?.data?.message || 'Failed to update profile',
+                  });
+                }
+              }}
+              className="space-y-4"
+            >
+              <Input
+                label="Full Name"
+                name="fullName"
+                defaultValue={user.fullName}
+                placeholder="Enter your full name"
+                required
+              />
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Bio / Journalism Experience</label>
+                <textarea
+                  name="bio"
+                  defaultValue={user.bio || ''}
+                  placeholder="Tell us about your background or reporting interests..."
+                  className="w-full bg-slate-900/90 border border-slate-800 focus:border-emerald-500/50 rounded-xl p-3 text-xs text-white placeholder-slate-500 outline-none transition-all resize-none h-24"
+                />
               </div>
-            </div>
+              <div className="flex justify-end pt-1">
+                <Button variant="emerald" type="submit" size="sm">
+                  Save Profile Changes
+                </Button>
+              </div>
+            </form>
+          </Card>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
-              <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-xs opacity-60">
-                <span className="text-slate-400 font-mono text-[10px] block">NAME / BIO EDIT</span>
-                <span className="text-slate-300 font-medium">Disabled (Pending API)</span>
-              </div>
-              <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-xs opacity-60">
-                <span className="text-slate-400 font-mono text-[10px] block">AVATAR UPLOAD</span>
-                <span className="text-slate-300 font-medium">Disabled (Pending API)</span>
-              </div>
-              <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-xs opacity-60">
-                <span className="text-slate-400 font-mono text-[10px] block">UI PREFERENCES</span>
-                <span className="text-slate-300 font-medium">Disabled (Pending API)</span>
-              </div>
-              <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-xs opacity-60">
-                <span className="text-slate-400 font-mono text-[10px] block">ACCOUNT DELETION</span>
-                <span className="text-slate-300 font-medium">Disabled (Pending API)</span>
-              </div>
+          {/* Citizen Reporter Submission Desk Card */}
+          <Card variant="glass" className="space-y-4 border-l-4 border-l-emerald-500">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <Award className="w-5 h-5 text-emerald-400" /> Grassroots Citizen Reporter Desk
+              </h3>
+              <Badge variant="emerald">Citizen Journalism</Badge>
+            </div>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Submit local news reports, eyewitness incident updates, or investigative tips from Palamu, Garhwa, or Latehar directly to Super Admin for verification and publication.
+            </p>
+            <div className="flex justify-end pt-1">
+              <Button
+                variant="emerald"
+                size="sm"
+                onClick={() => setIsCreateNewsModalOpen(true)}
+              >
+                Submit Citizen Report
+              </Button>
             </div>
           </Card>
         </div>
@@ -695,6 +802,131 @@ export const ProfilePage: React.FC = () => {
         </div>
       )}
 
+      {/* TAB 5: SAVED BOOKMARKS */}
+      {activeTab === 'bookmarks' && (
+        <div className="space-y-6">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-3">
+            <div>
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <Bookmark className="w-5 h-5 text-amber-400" /> Saved Reading List
+              </h3>
+              <p className="text-xs text-slate-400 font-mono">
+                Access articles you have saved for later offline reading ({bookmarksData?.total || 0} Stories)
+              </p>
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => refetchBookmarks()}
+              leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
+            >
+              Refresh
+            </Button>
+          </div>
+
+          {/* Engagement Summary Stats Cards */}
+          {engagementMetrics && (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-1">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 block font-bold">
+                  Comments
+                </span>
+                <p className="text-xl font-black text-white">{engagementMetrics.commentsCount}</p>
+              </div>
+              <div className="p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-1">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 block font-bold">
+                  Saved Stories
+                </span>
+                <p className="text-xl font-black text-amber-400">{engagementMetrics.bookmarksCount}</p>
+              </div>
+              <div className="p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-1">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 block font-bold">
+                  Reactions
+                </span>
+                <p className="text-xl font-black text-rose-400">{engagementMetrics.reactionsCount}</p>
+              </div>
+              <div className="p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-1">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 block font-bold">
+                  Reports
+                </span>
+                <p className="text-xl font-black text-indigo-400">{engagementMetrics.reportsCount}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Bookmarks Grid */}
+          {isLoadingBookmarks ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {[...Array(4)].map((_, i) => (
+                <Skeleton key={i} className="h-32 rounded-2xl" />
+              ))}
+            </div>
+          ) : !bookmarksData?.bookmarks || bookmarksData.bookmarks.length === 0 ? (
+            <EmptyState
+              icon={Bookmark}
+              title="No saved stories yet"
+              description="Browse the newsroom feed and tap the bookmark icon on any story to save it here for later."
+            />
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {bookmarksData.bookmarks.map((bm) => {
+                const story = bm.news;
+                if (!story) return null;
+
+                return (
+                  <Card
+                    key={bm.id}
+                    variant="glass"
+                    className="p-4 flex flex-col justify-between space-y-3 hover:border-amber-500/30 transition-all group"
+                  >
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-mono uppercase font-bold text-rose-400">
+                          {story.category?.name || 'NEWS'}
+                        </span>
+                        <span className="text-[10px] font-mono text-slate-500">
+                          {formatDate(story.publishedAt || undefined)}
+                        </span>
+                      </div>
+
+                      <Link to={`/news/${story.slug}`}>
+                        <h4 className="font-bold text-slate-100 text-sm group-hover:text-amber-300 transition-colors line-clamp-2 leading-snug">
+                          {story.title}
+                        </h4>
+                      </Link>
+
+                      {story.summary && (
+                        <p className="text-xs text-slate-400 line-clamp-2">{story.summary}</p>
+                      )}
+                    </div>
+
+                    <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs">
+                      <Link
+                        to={`/news/${story.slug}`}
+                        className="text-amber-400 hover:text-amber-300 font-semibold text-xs inline-flex items-center gap-1"
+                      >
+                        Read Story ➔
+                      </Link>
+
+                      <button
+                        type="button"
+                        onClick={() => removeBookmarkMutation.mutate(story.id)}
+                        disabled={removeBookmarkMutation.isPending}
+                        className="text-slate-500 hover:text-rose-400 p-1 transition-colors"
+                        title="Remove from saved"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* CONFIRM LOGOUT ALL MODAL */}
       <Modal
         isOpen={isLogoutAllModalOpen}
@@ -748,6 +980,9 @@ export const ProfilePage: React.FC = () => {
           </div>
         </div>
       </Modal>
+
+      {/* Citizen News Submission Modal */}
+      <CreateNewsModal isOpen={isCreateNewsModalOpen} onClose={() => setIsCreateNewsModalOpen(false)} />
     </div>
   );
 };

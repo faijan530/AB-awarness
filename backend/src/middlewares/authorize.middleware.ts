@@ -40,3 +40,6 @@ export function requirePermission(...requiredPermissions: string[]) {
     next();
   };
 }
+
+export const requireRoles = requireRole;
+export const requirePermissions = requirePermission;

@@ -42,10 +42,17 @@ export const LoginPage: React.FC = () => {
     try {
       await login({ email, password, rememberMe });
       toast.success('Welcome back!', 'Authentication successful.');
-      const returnUrl = searchParams.get('returnUrl') || '/';
-      // Only allow safe relative internal navigation
-      const safeTarget = returnUrl.startsWith('/') ? returnUrl : '/';
-      navigate(safeTarget, { replace: true });
+      const returnUrl = searchParams.get('returnUrl');
+      if (returnUrl && returnUrl.startsWith('/')) {
+        navigate(returnUrl, { replace: true });
+      } else {
+        const currentUser = useAuthStore.getState().user;
+        if (currentUser?.roles?.includes('SUPER_ADMIN')) {
+          navigate('/admin/dashboard', { replace: true });
+        } else {
+          navigate('/', { replace: true });
+        }
+      }
     } catch (err: any) {
       toast.error('Login Failed', err.message || 'Invalid email or password.');
     }
